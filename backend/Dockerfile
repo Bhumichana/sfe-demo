@@ -31,9 +31,9 @@ WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install production dependencies + devDependencies needed for seed
+# Install production dependencies + tsx for running seed
 RUN npm ci --only=production && \
-    npm install -D ts-node typescript @types/node @types/bcrypt
+    npm install -D tsx @types/node @types/bcrypt
 
 # Copy Prisma schema and generate client
 RUN npx prisma generate

@@ -198,7 +198,7 @@ export default function CallReportDetailPage() {
               <div className="text-white">
                 <h3 className="text-lg font-bold mb-1">🚪 Ready to Check-out?</h3>
                 <p className="text-white/90 text-sm">
-                  Checked in at {format(new Date(report.checkInTime), 'HH:mm น.', { locale: th })}
+                  Checked in at {report.checkInTime ? format(new Date(report.checkInTime), 'HH:mm น.', { locale: th }) : '-'}
                 </p>
               </div>
               <button

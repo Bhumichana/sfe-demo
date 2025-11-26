@@ -235,11 +235,11 @@ export default function EditCallReportPage() {
       let lat: number;
       let lng: number;
 
-      if (useMockGPS && report.customer?.lat && report.customer?.lng) {
-        // Dev Mode: Use customer location
-        lat = Number(report.customer.lat);
-        lng = Number(report.customer.lng);
-        console.log('🧪 Dev Mode: Using store location for check-out');
+      if (useMockGPS && report.checkInLat && report.checkInLng) {
+        // Dev Mode: Use check-in location for check-out
+        lat = Number(report.checkInLat);
+        lng = Number(report.checkInLng);
+        console.log('🧪 Dev Mode: Using check-in location for check-out');
       } else {
         // Real GPS
         setGettingLocation(true);

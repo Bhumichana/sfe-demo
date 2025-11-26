@@ -283,7 +283,7 @@ export default function CreatePreCallPlanPage() {
               </option>
               {customers.map((customer) => (
                 <option key={customer.id} value={customer.id}>
-                  [{customer.type}] {customer.code} - {customer.name}
+                  [Class {customer.customerClass}] {customer.code} - {customer.nameTh}
                 </option>
               ))}
             </select>

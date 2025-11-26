@@ -31,8 +31,8 @@ WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install production dependencies only
-RUN npm ci --only=production
+# Install production dependencies + ts-node for seed
+RUN npm ci --only=production && npm install -g ts-node typescript
 
 # Copy Prisma schema and generate client
 RUN npx prisma generate
@@ -44,4 +44,4 @@ COPY --from=builder /app/dist ./dist
 EXPOSE 3001
 
 # Start command
-CMD ["sh", "-c", "echo 'DATABASE_URL:' && echo $DATABASE_URL | cut -c1-50 && npx prisma generate && npx prisma migrate deploy && node dist/main"]
+CMD ["sh", "-c", "echo 'DATABASE_URL:' && echo $DATABASE_URL | cut -c1-50 && npx prisma generate && npx prisma migrate deploy && npx prisma db seed && node dist/main"]

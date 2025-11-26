@@ -8,6 +8,9 @@ import MainLayout from '@/components/layouts/MainLayout';
 import { format } from 'date-fns';
 import { callReportsApi } from '@/services/api';
 
+// Force dynamic rendering to support useSearchParams
+export const dynamic = 'force-dynamic';
+
 type PhotoCategory = 'product' | 'pop_posm' | 'customer' | 'activity' | 'other';
 
 interface Location {

@@ -8,6 +8,9 @@ import { Customer, Contact, ActivityTypeData, ActivityType, CreateCallReportDto,
 import { format } from 'date-fns';
 import MainLayout from '@/components/layouts/MainLayout';
 
+// Force dynamic rendering to support useSearchParams
+export const dynamic = 'force-dynamic';
+
 type PhotoCategory = 'product' | 'pop_posm' | 'customer' | 'activity' | 'other';
 
 interface CapturedPhoto {

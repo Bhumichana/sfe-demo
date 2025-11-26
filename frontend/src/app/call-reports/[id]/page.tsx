@@ -243,16 +243,7 @@ export default function CallReportDetailPage() {
                 lat: report.checkInLat,
                 lng: report.checkInLng,
               }}
-              customerLocation={
-                report.customer?.lat && report.customer?.lng
-                  ? {
-                      lat: report.customer.lat,
-                      lng: report.customer.lng,
-                      name: report.customer.name,
-                      address: report.customer.address,
-                    }
-                  : undefined
-              }
+              customerLocation={undefined}
               height="450px"
               showDistanceCircle={false}
             />

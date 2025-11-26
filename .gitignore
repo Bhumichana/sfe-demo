@@ -75,8 +75,8 @@ mobile/.env
 mobile/*.db
 
 # Prisma
-backend/prisma/migrations/
-!backend/prisma/migrations/.gitkeep
+# backend/prisma/migrations/ - REMOVED: We need migrations for production
+# !backend/prisma/migrations/.gitkeep
 
 # Docker
 postgres-data/

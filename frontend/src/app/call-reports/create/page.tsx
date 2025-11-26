@@ -1,15 +1,12 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { Suspense, useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
 import { callReportsApi, customersApi, activityTypesApi, preCallPlansApi } from '@/services/api';
 import { Customer, Contact, ActivityTypeData, ActivityType, CreateCallReportDto, PreCallPlan } from '@/types';
 import { format } from 'date-fns';
 import MainLayout from '@/components/layouts/MainLayout';
-
-// Force dynamic rendering to support useSearchParams
-export const dynamic = 'force-dynamic';
 
 type PhotoCategory = 'product' | 'pop_posm' | 'customer' | 'activity' | 'other';
 
@@ -34,7 +31,7 @@ const PHOTO_CATEGORIES: { value: PhotoCategory; label: string }[] = [
   { value: 'other', label: '📷 อื่นๆ' },
 ];
 
-export default function CreateCallReportPage() {
+function CreateCallReportPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isAuthenticated } = useAuthStore();
@@ -758,5 +755,18 @@ export default function CreateCallReportPage() {
         </div>
       </div>
     </MainLayout>
+  );
+}
+
+// Wrap with Suspense to support useSearchParams
+export default function CreateCallReportPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    }>
+      <CreateCallReportPageContent />
+    </Suspense>
   );
 }

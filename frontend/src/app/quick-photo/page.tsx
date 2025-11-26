@@ -1,15 +1,12 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { Suspense, useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
 import { CallReport } from '@/types';
 import MainLayout from '@/components/layouts/MainLayout';
 import { format } from 'date-fns';
 import { callReportsApi } from '@/services/api';
-
-// Force dynamic rendering to support useSearchParams
-export const dynamic = 'force-dynamic';
 
 type PhotoCategory = 'product' | 'pop_posm' | 'customer' | 'activity' | 'other';
 
@@ -35,7 +32,7 @@ const PHOTO_CATEGORIES: { value: PhotoCategory; label: string }[] = [
   { value: 'other', label: '📷 อื่นๆ (Other)' },
 ];
 
-export default function QuickPhotoPage() {
+function QuickPhotoPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isAuthenticated, initAuth } = useAuthStore();
@@ -505,5 +502,18 @@ export default function QuickPhotoPage() {
         <canvas ref={canvasRef} className="hidden" />
       </div>
     </MainLayout>
+  );
+}
+
+// Wrap with Suspense to support useSearchParams
+export default function QuickPhotoPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    }>
+      <QuickPhotoPageContent />
+    </Suspense>
   );
 }

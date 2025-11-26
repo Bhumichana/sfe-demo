@@ -218,6 +218,12 @@ export interface CreateCallReportDto {
 }
 
 export interface UpdateCallReportDto {
+  checkInTime?: string;
+  checkInLat?: number;
+  checkInLng?: number;
+  checkOutTime?: string;
+  checkOutLat?: number;
+  checkOutLng?: number;
   activityType?: ActivityType;
   activitiesDone?: string[];
   customerResponse?: string;
@@ -226,6 +232,7 @@ export interface UpdateCallReportDto {
   customerNeeds?: string;
   customerComplaints?: string;
   nextAction?: string;
+  durationMinutes?: number;
 }
 
 // Activity Type interface (Master Data)

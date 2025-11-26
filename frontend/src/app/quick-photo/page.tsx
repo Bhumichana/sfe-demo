@@ -3,20 +3,12 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
+import { CallReport } from '@/types';
 import MainLayout from '@/components/layouts/MainLayout';
 import { format } from 'date-fns';
 import { callReportsApi } from '@/services/api';
 
 type PhotoCategory = 'product' | 'pop_posm' | 'customer' | 'activity' | 'other';
-
-interface CallReport {
-  id: string;
-  customer: {
-    name: string;
-  };
-  callDate: string;
-  status: string;
-}
 
 interface Location {
   lat: number;
@@ -368,7 +360,7 @@ export default function QuickPhotoPage() {
                   <option value="">-- เลือก Call Report --</option>
                   {callReports.map((report) => (
                     <option key={report.id} value={report.id}>
-                      {report.customer.name} - {format(new Date(report.callDate), 'dd/MM/yyyy')}
+                      {report.customer?.name || 'ลูกค้า'} - {format(new Date(report.callDate), 'dd/MM/yyyy')}
                     </option>
                   ))}
                 </select>

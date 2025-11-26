@@ -705,73 +705,38 @@ export default function EditCallReportPage() {
 
             {currentLocation && (
               <>
-                <DynamicLocationMap
-                  currentLocation={currentLocation}
-                  customerLocation={{
-                    lat: report.customer.lat,
-                    lng: report.customer.lng,
-                    name: report.customer.name,
-                    address: report.customer.address,
-                  }}
-                  distance={calculateDistance(
-                    currentLocation.lat,
-                    currentLocation.lng,
-                    report.customer.lat,
-                    report.customer.lng
-                  )}
-                  maxDistance={MAX_DISTANCE}
-                  height="350px"
-                  showDistanceCircle={true}
-                />
-
-                {(() => {
-                  const distance = calculateDistance(
-                    currentLocation.lat,
-                    currentLocation.lng,
-                    report.customer.lat,
-                    report.customer.lng
-                  );
-                  const canCheckIn = distance <= MAX_DISTANCE;
-
-                  return (
-                    <div className="mt-4">
-                      <div className="mb-3 p-3 bg-white/20 rounded-lg text-white text-sm">
-                        <div className="flex items-center justify-between">
-                          <span>Distance to customer:</span>
-                          <span className={`font-bold ${canCheckIn ? 'text-green-200' : 'text-red-200'}`}>
-                            {Math.round(distance)}m {canCheckIn ? '✅' : '❌'}
-                          </span>
-                        </div>
-                        {currentLocation.accuracy > 20 && (
-                          <div className="mt-2 text-xs text-yellow-200">
-                            ⚠️ GPS accuracy: ±{Math.round(currentLocation.accuracy)}m - Move to open area for better signal
-                          </div>
-                        )}
-                      </div>
-
-                      <button
-                        onClick={handleCheckIn}
-                        disabled={!canCheckIn || checkingIn}
-                        className={`w-full py-3 px-6 rounded-lg font-bold shadow-lg transition-all ${
-                          canCheckIn && !checkingIn
-                            ? 'bg-white text-green-700 hover:bg-gray-100'
-                            : 'bg-white/30 text-white cursor-not-allowed'
-                        }`}
-                      >
-                        {checkingIn ? (
-                          <span className="flex items-center justify-center gap-2">
-                            <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
-                            Checking in...
-                          </span>
-                        ) : canCheckIn ? (
-                          '🚀 Check-in Now'
-                        ) : (
-                          `❌ Too Far (${Math.round(distance)}m / ${MAX_DISTANCE}m max)`
-                        )}
-                      </button>
+                <div className="mb-3 p-3 bg-white/20 rounded-lg text-white text-sm">
+                  <div className="flex items-center justify-between">
+                    <span>GPS Location:</span>
+                    <span className="font-bold text-green-200">
+                      {currentLocation.lat.toFixed(6)}, {currentLocation.lng.toFixed(6)} ✅
+                    </span>
+                  </div>
+                  {currentLocation.accuracy > 20 && (
+                    <div className="mt-2 text-xs text-yellow-200">
+                      ⚠️ GPS accuracy: ±{Math.round(currentLocation.accuracy)}m - Move to open area for better signal
                     </div>
-                  );
-                })()}
+                  )}
+                </div>
+
+                <button
+                  onClick={handleCheckIn}
+                  disabled={checkingIn}
+                  className={`w-full py-3 px-6 rounded-lg font-bold shadow-lg transition-all ${
+                    !checkingIn
+                      ? 'bg-white text-green-700 hover:bg-gray-100'
+                      : 'bg-white/30 text-white cursor-not-allowed'
+                  }`}
+                >
+                  {checkingIn ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+                      Checking in...
+                    </span>
+                  ) : (
+                    '🚀 Check-in Now'
+                  )}
+                </button>
               </>
             )}
           </div>

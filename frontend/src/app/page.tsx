@@ -9,9 +9,9 @@ import DailyTaskButton from '@/components/dashboard/DailyTaskButton';
 import RecentCallItem, { RecentCall } from '@/components/dashboard/RecentCallItem';
 import NotificationCenter from '@/components/NotificationCenter';
 import BottomNav from '@/components/BottomNav';
-import { preCallPlansApi } from '@/services/api';
+import { preCallPlansApi, callReportsApi } from '@/services/api';
 import { PreCallPlan } from '@/types';
-import { format } from 'date-fns';
+import { format, startOfDay, startOfMonth } from 'date-fns';
 
 export default function Home() {
   const router = useRouter();
@@ -22,6 +22,9 @@ export default function Home() {
   const [loadingCalls, setLoadingCalls] = useState(true);
   const [draftPlansCount, setDraftPlansCount] = useState(0);
   const [pendingPlansCount, setPendingPlansCount] = useState(0);
+  const [todayCalls, setTodayCalls] = useState(0);
+  const [monthCalls, setMonthCalls] = useState(0);
+  const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
     initAuth();
@@ -44,6 +47,40 @@ export default function Home() {
     fetchUnreadCount();
     const interval = setInterval(fetchUnreadCount, 30000);
     return () => clearInterval(interval);
+  }, [user]);
+
+  // Fetch call reports statistics
+  useEffect(() => {
+    const fetchCallStats = async () => {
+      if (!user) return;
+
+      try {
+        setLoadingStats(true);
+        const reports = await callReportsApi.findByUser(user.id);
+
+        // Calculate today's calls
+        const today = startOfDay(new Date());
+        const todayReports = reports.filter(report => {
+          const callDate = startOfDay(new Date(report.callDate));
+          return callDate.getTime() === today.getTime();
+        });
+        setTodayCalls(todayReports.length);
+
+        // Calculate month's calls
+        const monthStart = startOfMonth(new Date());
+        const monthReports = reports.filter(report => {
+          const callDate = new Date(report.callDate);
+          return callDate >= monthStart;
+        });
+        setMonthCalls(monthReports.length);
+      } catch (error) {
+        console.error('Error fetching call stats:', error);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+
+    fetchCallStats();
   }, [user]);
 
   // Fetch recent Pre-Call Plans and counts
@@ -209,7 +246,7 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatsCard
             title="Calls วันนี้"
-            value="3"
+            value={loadingStats ? "..." : todayCalls.toString()}
             subtitle="เป้าหมาย: 5 calls"
             icon={
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -217,7 +254,6 @@ export default function Home() {
               </svg>
             }
             color="primary"
-            trend={{ value: 20, isPositive: true }}
           />
 
           <StatsCard
@@ -230,12 +266,11 @@ export default function Home() {
               </svg>
             }
             color="success"
-            trend={{ value: 5, isPositive: true }}
           />
 
           <StatsCard
             title="Calls เดือนนี้"
-            value="45"
+            value={loadingStats ? "..." : monthCalls.toString()}
             subtitle="จาก 100 calls"
             icon={
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

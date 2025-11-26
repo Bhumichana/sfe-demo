@@ -6,6 +6,7 @@ interface SRData {
   name: string;
   value: number;
   fullName: string;
+  [key: string]: any;
 }
 
 interface SRPerformanceChartProps {

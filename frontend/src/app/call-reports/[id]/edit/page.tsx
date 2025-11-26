@@ -769,29 +769,7 @@ export default function EditCallReportPage() {
               GPS Location Map
             </h2>
 
-            <DynamicLocationMap
-              currentLocation={{
-                lat: Number(report.checkInLat),
-                lng: Number(report.checkInLng),
-              }}
-              customerLocation={{
-                lat: report.customer.lat,
-                lng: report.customer.lng,
-                name: report.customer.name,
-                address: report.customer.address,
-              }}
-              distance={calculateDistance(
-                Number(report.checkInLat),
-                Number(report.checkInLng),
-                report.customer.lat,
-                report.customer.lng
-              )}
-              maxDistance={MAX_DISTANCE}
-              height="350px"
-              showDistanceCircle={false}
-            />
-
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="p-3 bg-white/20 rounded-lg text-white text-sm">
                 <p className="font-semibold mb-1">📍 Check-in Location</p>
                 <p className="text-xs opacity-90">

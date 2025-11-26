@@ -325,10 +325,10 @@ export default function CallReportsReviewPage() {
                               key={photo.id}
                               className="w-24 h-24 rounded-lg overflow-hidden border-2 border-gray-200 hover:border-primary transition-colors cursor-pointer group relative"
                             >
-                              {photo.thumbnailUrl || photo.url ? (
+                              {photo.thumbnailUrl ? (
                                 <>
                                   <img
-                                    src={photo.thumbnailUrl || photo.url}
+                                    src={photo.thumbnailUrl}
                                     alt={photo.category || 'รูปภาพ'}
                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform"
                                     onError={(e) => {

@@ -45,4 +45,4 @@ COPY --from=builder /app/dist ./dist
 EXPOSE 3001
 
 # Start command
-CMD ["sh", "-c", "echo 'DATABASE_URL:' && echo $DATABASE_URL | cut -c1-50 && npx prisma generate && npx prisma migrate deploy && npx prisma db seed && node dist/main"]
+CMD ["sh", "-c", "echo 'DATABASE_URL:' && echo $DATABASE_URL | cut -c1-50 && npx prisma generate && npx prisma migrate deploy && node dist/main"]

@@ -465,7 +465,7 @@ export default function CreateCallReportPage() {
                 <option value="">-- เลือกลูกค้า --</option>
                 {customers.map((customer) => (
                   <option key={customer.id} value={customer.id}>
-                    {customer.name} ({customer.type})
+                    {customer.nameTh} (Class {customer.customerClass})
                   </option>
                 ))}
               </select>

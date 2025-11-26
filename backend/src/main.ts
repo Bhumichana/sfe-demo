@@ -12,7 +12,13 @@ async function bootstrap() {
 
   // CORS - Allow frontend to access API
   app.enableCors({
-    origin: ['http://localhost:3001', 'http://localhost:3000'],
+    origin: [
+      'http://localhost:3001',
+      'http://localhost:3000',
+      'https://sfe-demo.vercel.app',
+      'https://sfe-demo-git-main-chayathorns-projects.vercel.app',
+      /\.vercel\.app$/,
+    ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     credentials: true,

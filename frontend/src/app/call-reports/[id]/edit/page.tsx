@@ -336,7 +336,7 @@ export default function EditCallReportPage() {
       setSubmitting(true);
 
       await callReportsApi.update(report.id, user.id, {
-        callActivityType: formData.callActivityType,
+        activityType: formData.callActivityType,
         activitiesDone: formData.activitiesDone,
         customerResponse: formData.customerResponse || undefined,
         customerRequest: formData.customerRequest || undefined,

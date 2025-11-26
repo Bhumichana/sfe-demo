@@ -14,6 +14,7 @@ import type {
   CreateCallReportDto,
   UpdateCallReportDto,
   CallReportStatus,
+  Customer,
 } from '@/types';
 
 // Create axios instance

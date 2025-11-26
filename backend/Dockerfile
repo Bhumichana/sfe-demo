@@ -13,7 +13,7 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Generate Prisma Client
+# Generate Prisma Client (without database connection)
 RUN npx prisma generate
 
 # Build application
@@ -41,4 +41,4 @@ COPY --from=builder /app/dist ./dist
 EXPOSE 3001
 
 # Start command
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
+CMD ["sh", "-c", "npx prisma generate && npx prisma migrate deploy && node dist/main"]

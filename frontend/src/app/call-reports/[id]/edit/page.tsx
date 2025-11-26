@@ -196,31 +196,7 @@ export default function EditCallReportPage() {
 
     const customer = report.customer;
 
-    // Validate customer has GPS coordinates
-    if (!customer?.lat || !customer?.lng) {
-      alert('ลูกค้านี้ไม่มีข้อมูล GPS กรุณาติดต่อผู้ดูแลระบบ');
-      return;
-    }
-
-    // Calculate distance
-    const distance = calculateDistance(
-      currentLocation.lat,
-      currentLocation.lng,
-      customer.lat,
-      customer.lng
-    );
-
-    // Validate distance
-    if (distance > MAX_DISTANCE) {
-      alert(
-        `คุณอยู่ห่างจากลูกค้า ${Math.round(distance)} เมตร\n` +
-        `(ระยะห่างสูงสุดที่อนุญาต: ${MAX_DISTANCE} เมตร)\n\n` +
-        `กรุณาเข้าใกล้ลูกค้ามากขึ้น`
-      );
-      return;
-    }
-
-    if (!confirm(`ยืนยันการ Check-in ที่ ${customer.name}?`)) {
+    if (!confirm(`ยืนยันการ Check-in ที่ ${customer?.name || 'ลูกค้า'}?`)) {
       return;
     }
 

@@ -22,6 +22,9 @@ RUN npm run build
 # Production stage
 FROM node:20-alpine
 
+# Install OpenSSL for Prisma
+RUN apk add --no-cache openssl
+
 WORKDIR /app
 
 # Copy package files
@@ -41,4 +44,4 @@ COPY --from=builder /app/dist ./dist
 EXPOSE 3001
 
 # Start command
-CMD ["sh", "-c", "npx prisma generate && npx prisma migrate deploy && node dist/main"]
+CMD ["sh", "-c", "echo 'DATABASE_URL:' && echo $DATABASE_URL | cut -c1-50 && npx prisma generate && npx prisma migrate deploy && node dist/main"]

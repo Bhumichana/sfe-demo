@@ -552,3 +552,93 @@ export const contactsApi = {
     await api.delete(`/contacts/${id}`);
   },
 };
+
+// Users API
+export const usersApi = {
+  /**
+   * Create a new user
+   */
+  create: async (data: {
+    username: string;
+    email: string;
+    fullName: string;
+    phone?: string;
+    role: string;
+    managerId?: string;
+    companyId: string;
+    territoryId?: string;
+    password: string;
+    isActive?: boolean;
+  }): Promise<any> => {
+    const response = await api.post('/users', data);
+    return response.data;
+  },
+
+  /**
+   * Get all users with optional filters
+   */
+  findAll: async (params?: {
+    companyId?: string;
+    role?: string;
+    territoryId?: string;
+    isActive?: boolean;
+  }): Promise<any[]> => {
+    const response = await api.get('/users', { params });
+    return response.data;
+  },
+
+  /**
+   * Get user by ID
+   */
+  findOne: async (id: string): Promise<any> => {
+    const response = await api.get(`/users/${id}`);
+    return response.data;
+  },
+
+  /**
+   * Update a user
+   */
+  update: async (id: string, data: {
+    username?: string;
+    email?: string;
+    fullName?: string;
+    phone?: string;
+    role?: string;
+    managerId?: string;
+    territoryId?: string;
+    password?: string;
+    isActive?: boolean;
+  }): Promise<any> => {
+    const response = await api.patch(`/users/${id}`, data);
+    return response.data;
+  },
+
+  /**
+   * Deactivate user (soft delete)
+   */
+  remove: async (id: string): Promise<void> => {
+    await api.delete(`/users/${id}`);
+  },
+
+  /**
+   * Permanently delete user
+   */
+  hardDelete: async (id: string): Promise<void> => {
+    await api.delete(`/users/${id}/hard`);
+  },
+
+  /**
+   * Activate user
+   */
+  activate: async (id: string): Promise<void> => {
+    await api.post(`/users/${id}/activate`);
+  },
+
+  /**
+   * Get user statistics
+   */
+  getStatistics: async (companyId: string): Promise<any> => {
+    const response = await api.get(`/users/statistics/${companyId}`);
+    return response.data;
+  },
+};

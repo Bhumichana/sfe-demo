@@ -100,3 +100,5 @@ frontend/.vercel
 .cache/
 tmp/
 temp/
+nul
+backend/nul

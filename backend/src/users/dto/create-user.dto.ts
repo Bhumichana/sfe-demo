@@ -1,0 +1,57 @@
+import { IsString, IsEmail, IsEnum, IsOptional, IsBoolean, MinLength } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
+export enum UserRole {
+  SR = 'SR',
+  SUP = 'SUP',
+  SM = 'SM',
+  PM = 'PM',
+  MM = 'MM',
+}
+
+export class CreateUserDto {
+  @ApiProperty({ example: 'john.doe' })
+  @IsString()
+  username: string;
+
+  @ApiProperty({ example: 'john.doe@example.com' })
+  @IsEmail()
+  email: string;
+
+  @ApiProperty({ example: 'John Doe' })
+  @IsString()
+  fullName: string;
+
+  @ApiPropertyOptional({ example: '0812345678' })
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @ApiProperty({ enum: UserRole, example: UserRole.SR })
+  @IsEnum(UserRole)
+  role: UserRole;
+
+  @ApiPropertyOptional({ example: 'uuid-of-manager' })
+  @IsOptional()
+  @IsString()
+  managerId?: string;
+
+  @ApiProperty({ example: 'uuid-of-company' })
+  @IsString()
+  companyId: string;
+
+  @ApiPropertyOptional({ example: 'uuid-of-territory' })
+  @IsOptional()
+  @IsString()
+  territoryId?: string;
+
+  @ApiProperty({ example: 'password123', minLength: 6 })
+  @IsString()
+  @MinLength(6)
+  password: string;
+
+  @ApiPropertyOptional({ example: true, default: true })
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
+}

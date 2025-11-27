@@ -14,6 +14,7 @@ import { ManagerModule } from './modules/manager/manager.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { CustomersModule } from './modules/customers/customers.module';
 import { ContactsModule } from './modules/contacts/contacts.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -47,9 +48,9 @@ import { ContactsModule } from './modules/contacts/contacts.module';
     AnalyticsModule,
     CustomersModule, // Customer data endpoints
     ContactsModule, // Contact data endpoints
+    UsersModule, // User management endpoints
 
     // Future modules:
-    // UsersModule,
     // TerritoriesModule,
   ],
   controllers: [AppController],

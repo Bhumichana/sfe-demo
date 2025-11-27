@@ -642,3 +642,151 @@ export const usersApi = {
     return response.data;
   },
 };
+
+// Teams API
+export const teamsApi = {
+  /**
+   * Create a new team
+   */
+  create: async (data: {
+    code: string;
+    name: string;
+    description?: string;
+    leaderId?: string;
+    companyId: string;
+    isActive?: boolean;
+  }): Promise<any> => {
+    const response = await api.post('/teams', data);
+    return response.data;
+  },
+
+  /**
+   * Get all teams with optional filters
+   */
+  findAll: async (params?: {
+    companyId?: string;
+    isActive?: boolean;
+  }): Promise<any[]> => {
+    const response = await api.get('/teams', { params });
+    return response.data;
+  },
+
+  /**
+   * Get team by ID
+   */
+  findOne: async (id: string): Promise<any> => {
+    const response = await api.get(`/teams/${id}`);
+    return response.data;
+  },
+
+  /**
+   * Update a team
+   */
+  update: async (id: string, data: {
+    code?: string;
+    name?: string;
+    description?: string;
+    leaderId?: string;
+    isActive?: boolean;
+  }): Promise<any> => {
+    const response = await api.patch(`/teams/${id}`, data);
+    return response.data;
+  },
+
+  /**
+   * Deactivate team (soft delete)
+   */
+  remove: async (id: string): Promise<void> => {
+    await api.delete(`/teams/${id}`);
+  },
+
+  /**
+   * Activate team
+   */
+  activate: async (id: string): Promise<void> => {
+    await api.post(`/teams/${id}/activate`);
+  },
+
+  /**
+   * Get team statistics
+   */
+  getStatistics: async (companyId: string): Promise<any> => {
+    const response = await api.get(`/teams/statistics/${companyId}`);
+    return response.data;
+  },
+};
+
+// Territories API
+export const territoriesApi = {
+  /**
+   * Create a new territory
+   */
+  create: async (data: {
+    code: string;
+    nameTh: string;
+    nameEn: string;
+    description?: string;
+    provinces?: string[];
+    companyId: string;
+    isActive?: boolean;
+  }): Promise<any> => {
+    const response = await api.post('/territories', data);
+    return response.data;
+  },
+
+  /**
+   * Get all territories with optional filters
+   */
+  findAll: async (params?: {
+    companyId?: string;
+    isActive?: boolean;
+  }): Promise<any[]> => {
+    const response = await api.get('/territories', { params });
+    return response.data;
+  },
+
+  /**
+   * Get territory by ID
+   */
+  findOne: async (id: string): Promise<any> => {
+    const response = await api.get(`/territories/${id}`);
+    return response.data;
+  },
+
+  /**
+   * Update a territory
+   */
+  update: async (id: string, data: {
+    code?: string;
+    nameTh?: string;
+    nameEn?: string;
+    description?: string;
+    provinces?: string[];
+    isActive?: boolean;
+  }): Promise<any> => {
+    const response = await api.patch(`/territories/${id}`, data);
+    return response.data;
+  },
+
+  /**
+   * Deactivate territory (soft delete)
+   */
+  remove: async (id: string): Promise<void> => {
+    await api.delete(`/territories/${id}`);
+  },
+
+  /**
+   * Activate territory
+   */
+  activate: async (id: string): Promise<void> => {
+    await api.post(`/territories/${id}/activate`);
+  },
+
+  /**
+   * Get territory statistics
+   */
+  getStatistics: async (companyId: string): Promise<any> => {
+    const response = await api.get(`/territories/statistics/${companyId}`);
+    return response.data;
+  },
+};

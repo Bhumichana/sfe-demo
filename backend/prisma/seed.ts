@@ -7,7 +7,7 @@ async function main() {
   console.log('🌱 Seeding database...');
 
   // Clean database
-  await prisma.$executeRaw`TRUNCATE TABLE "users", "companies", "territories", "customers", "contacts", "activity_types", "pre_call_plans", "call_reports" RESTART IDENTITY CASCADE`;
+  await prisma.$executeRaw`TRUNCATE TABLE "users", "companies", "territories", "teams", "customers", "contacts", "activity_types", "pre_call_plans", "call_reports" RESTART IDENTITY CASCADE`;
 
   // Create demo company
   console.log('Creating company...');
@@ -34,6 +34,7 @@ async function main() {
         nameEn: 'Bangkok North',
         description: 'Northern Bangkok area',
         provinces: ['กรุงเทพมหานคร'],
+        companyId: company.id,
       },
     }),
     prisma.territory.create({
@@ -43,6 +44,7 @@ async function main() {
         nameEn: 'Bangkok South',
         description: 'Southern Bangkok area',
         provinces: ['กรุงเทพมหานคร'],
+        companyId: company.id,
       },
     }),
     prisma.territory.create({
@@ -52,6 +54,7 @@ async function main() {
         nameEn: 'Bangkok East',
         description: 'Eastern Bangkok area',
         provinces: ['กรุงเทพมหานคร'],
+        companyId: company.id,
       },
     }),
     prisma.territory.create({
@@ -61,6 +64,7 @@ async function main() {
         nameEn: 'Bangkok West',
         description: 'Western Bangkok area',
         provinces: ['กรุงเทพมหานคร'],
+        companyId: company.id,
       },
     }),
     prisma.territory.create({
@@ -69,6 +73,7 @@ async function main() {
         nameTh: 'นนทบุรี + ปทุมธานี',
         nameEn: 'Nonthaburi + Pathum Thani',
         provinces: ['นนทบุรี', 'ปทุมธานี'],
+        companyId: company.id,
       },
     }),
     prisma.territory.create({
@@ -77,6 +82,7 @@ async function main() {
         nameTh: 'สมุทรปราการ + สมุทรสาคร',
         nameEn: 'Samut Prakan + Samut Sakhon',
         provinces: ['สมุทรปราการ', 'สมุทรสาคร'],
+        companyId: company.id,
       },
     }),
     prisma.territory.create({
@@ -85,6 +91,7 @@ async function main() {
         nameTh: 'เชียงใหม่ + ลำพูน',
         nameEn: 'Chiang Mai + Lamphun',
         provinces: ['เชียงใหม่', 'ลำพูน'],
+        companyId: company.id,
       },
     }),
   ]);
@@ -92,7 +99,7 @@ async function main() {
   // Hash password for demo users
   const demoPassword = await bcrypt.hash('demo1234', 10);
 
-  // Create demo users
+  // Create demo users (without teams first)
   console.log('Creating users...');
 
   // CEO
@@ -208,6 +215,55 @@ async function main() {
       managerId: saleDirector.id,
       companyId: company.id,
     },
+  });
+
+  // Create teams
+  console.log('Creating teams...');
+  const team1 = await prisma.team.create({
+    data: {
+      code: 'TEAM-BKK-NORTH',
+      name: 'Bangkok North Sales Team',
+      description: 'Sales team responsible for Northern Bangkok area',
+      leaderId: supervisor.id,
+      companyId: company.id,
+    },
+  });
+
+  const team2 = await prisma.team.create({
+    data: {
+      code: 'TEAM-PRODUCT',
+      name: 'Product & Marketing Team',
+      description: 'Product management and marketing team',
+      leaderId: pm.id,
+      companyId: company.id,
+    },
+  });
+
+  // Update users with team assignments
+  console.log('Assigning users to teams...');
+  await prisma.user.update({
+    where: { id: sr1.id },
+    data: { teamId: team1.id },
+  });
+
+  await prisma.user.update({
+    where: { id: sr2.id },
+    data: { teamId: team1.id },
+  });
+
+  await prisma.user.update({
+    where: { id: supervisor.id },
+    data: { teamId: team1.id },
+  });
+
+  await prisma.user.update({
+    where: { id: pm.id },
+    data: { teamId: team2.id },
+  });
+
+  await prisma.user.update({
+    where: { id: mm.id },
+    data: { teamId: team2.id },
   });
 
   // Create activity types
@@ -443,6 +499,7 @@ async function main() {
   console.log('📊 Created:');
   console.log(`  - 1 Company`);
   console.log(`  - 7 Territories`);
+  console.log(`  - 2 Teams (Bangkok North Sales, Product & Marketing)`);
   console.log(`  - 8 Users (CEO, SD, SM, MM, PM, SUP, 2xSR)`);
   console.log(`  - 13 Activity Types`);
   console.log(`  - 6 Customers (2xA, 2xB, 2xC)`);

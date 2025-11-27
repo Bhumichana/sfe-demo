@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
 import MainLayout from '@/components/layouts/MainLayout';
-import { usersApi } from '@/services/api';
+import { usersApi, teamsApi } from '@/services/api';
 
 interface Territory {
   id: string;
@@ -19,6 +19,12 @@ interface Manager {
   role: string;
 }
 
+interface Team {
+  id: string;
+  code: string;
+  name: string;
+}
+
 export default function UserCreatePage() {
   const router = useRouter();
   const { user: currentUser } = useAuthStore();
@@ -26,6 +32,7 @@ export default function UserCreatePage() {
   const [saving, setSaving] = useState(false);
   const [territories, setTerritories] = useState<Territory[]>([]);
   const [potentialManagers, setPotentialManagers] = useState<Manager[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -36,6 +43,7 @@ export default function UserCreatePage() {
     role: 'SR',
     territoryId: '',
     managerId: '',
+    teamId: '',
     password: '',
     confirmPassword: '',
     isActive: true,
@@ -46,6 +54,7 @@ export default function UserCreatePage() {
   useEffect(() => {
     fetchTerritories();
     fetchPotentialManagers();
+    fetchTeams();
   }, []);
 
   const fetchTerritories = async () => {
@@ -70,6 +79,16 @@ export default function UserCreatePage() {
       setPotentialManagers(managers);
     } catch (error) {
       console.error('Error fetching managers:', error);
+    }
+  };
+
+  const fetchTeams = async () => {
+    try {
+      if (!currentUser) return;
+      const data = await teamsApi.findAll({ companyId: currentUser.companyId, isActive: true });
+      setTeams(data);
+    } catch (error) {
+      console.error('Error fetching teams:', error);
     }
   };
 
@@ -139,6 +158,7 @@ export default function UserCreatePage() {
         companyId: currentUser.companyId,
         territoryId: formData.territoryId || undefined,
         managerId: formData.managerId || undefined,
+        teamId: formData.teamId || undefined,
         password: formData.password,
         isActive: formData.isActive,
       };
@@ -268,6 +288,23 @@ export default function UserCreatePage() {
                   {territories.map((territory) => (
                     <option key={territory.id} value={territory.id}>
                       {territory.nameTh} ({territory.code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">ทีม</label>
+                <select
+                  name="teamId"
+                  value={formData.teamId}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="">ไม่ระบุ</option>
+                  {teams.map((team) => (
+                    <option key={team.id} value={team.id}>
+                      {team.name} ({team.code})
                     </option>
                   ))}
                 </select>

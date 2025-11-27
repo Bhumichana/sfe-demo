@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
 import MainLayout from '@/components/layouts/MainLayout';
-import { usersApi } from '@/services/api';
+import { usersApi, teamsApi } from '@/services/api';
 
 interface Territory {
   id: string;
@@ -19,6 +19,12 @@ interface Manager {
   role: string;
 }
 
+interface Team {
+  id: string;
+  code: string;
+  name: string;
+}
+
 export default function UserEditPage() {
   const router = useRouter();
   const params = useParams();
@@ -30,6 +36,7 @@ export default function UserEditPage() {
   const [saving, setSaving] = useState(false);
   const [territories, setTerritories] = useState<Territory[]>([]);
   const [potentialManagers, setPotentialManagers] = useState<Manager[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -40,6 +47,7 @@ export default function UserEditPage() {
     role: 'SR',
     territoryId: '',
     managerId: '',
+    teamId: '',
     password: '',
     isActive: true,
   });
@@ -51,6 +59,7 @@ export default function UserEditPage() {
       fetchUserData();
       fetchTerritories();
       fetchPotentialManagers();
+      fetchTeams();
     }
   }, [userId]);
 
@@ -66,6 +75,7 @@ export default function UserEditPage() {
         role: data.role,
         territoryId: data.territory?.id || '',
         managerId: data.manager?.id || '',
+        teamId: data.team?.id || '',
         password: '', // Don't populate password
         isActive: data.isActive,
       });
@@ -102,6 +112,16 @@ export default function UserEditPage() {
       setPotentialManagers(managers);
     } catch (error) {
       console.error('Error fetching managers:', error);
+    }
+  };
+
+  const fetchTeams = async () => {
+    try {
+      if (!currentUser) return;
+      const data = await teamsApi.findAll({ companyId: currentUser.companyId, isActive: true });
+      setTeams(data);
+    } catch (error) {
+      console.error('Error fetching teams:', error);
     }
   };
 
@@ -155,6 +175,7 @@ export default function UserEditPage() {
         role: formData.role,
         territoryId: formData.territoryId || undefined,
         managerId: formData.managerId || undefined,
+        teamId: formData.teamId || undefined,
         isActive: formData.isActive,
       };
 
@@ -298,6 +319,23 @@ export default function UserEditPage() {
                   {territories.map((territory) => (
                     <option key={territory.id} value={territory.id}>
                       {territory.nameTh} ({territory.code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">ทีม</label>
+                <select
+                  name="teamId"
+                  value={formData.teamId}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="">ไม่ระบุ</option>
+                  {teams.map((team) => (
+                    <option key={team.id} value={team.id}>
+                      {team.name} ({team.code})
                     </option>
                   ))}
                 </select>

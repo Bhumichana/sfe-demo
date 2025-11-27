@@ -16,6 +16,7 @@ import { CustomersModule } from './modules/customers/customers.module';
 import { ContactsModule } from './modules/contacts/contacts.module';
 import { UsersModule } from './users/users.module';
 import { TerritoriesModule } from './territories/territories.module';
+import { TeamsModule } from './teams/teams.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { TerritoriesModule } from './territories/territories.module';
     ContactsModule, // Contact data endpoints
     UsersModule, // User management endpoints
     TerritoriesModule, // Territory management endpoints
+    TeamsModule, // Team management endpoints
   ],
   controllers: [AppController],
   providers: [AppService],

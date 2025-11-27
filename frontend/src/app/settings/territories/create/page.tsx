@@ -25,6 +25,11 @@ export default function CreateTerritoryPage() {
       return;
     }
 
+    if (!currentUser || !currentUser.companyId) {
+      alert('ไม่สามารถระบุ Company ID ได้');
+      return;
+    }
+
     try {
       setLoading(true);
       const provincesArray = formData.provinces
@@ -34,7 +39,7 @@ export default function CreateTerritoryPage() {
       await territoriesApi.create({
         ...formData,
         provinces: provincesArray,
-        companyId: currentUser!.companyId,
+        companyId: currentUser.companyId,
       });
 
       alert('สร้างเขตพื้นที่สำเร็จ');

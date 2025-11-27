@@ -117,9 +117,9 @@ export default function ManagerDashboard() {
             </div>
             <button
               onClick={handleLogout}
-              className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-error transition-colors"
+              className="px-4 py-2 text-sm font-medium text-error border border-error rounded-lg hover:bg-error/10 transition-colors"
             >
-              Logout
+              ออกจากระบบ
             </button>
           </div>
         </div>

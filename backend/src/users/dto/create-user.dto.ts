@@ -2,11 +2,13 @@ import { IsString, IsEmail, IsEnum, IsOptional, IsBoolean, MinLength } from 'cla
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export enum UserRole {
-  SR = 'SR',
-  SUP = 'SUP',
-  SM = 'SM',
-  PM = 'PM',
-  MM = 'MM',
+  CEO = 'CEO', // Chief Executive Officer
+  SD = 'SD',   // Sale Director
+  SM = 'SM',   // Sales Manager
+  MM = 'MM',   // Marketing Manager
+  PM = 'PM',   // Product Manager
+  SUP = 'SUP', // Supervisor
+  SR = 'SR',   // Sales Representative
 }
 
 export class CreateUserDto {

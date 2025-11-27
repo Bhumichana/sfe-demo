@@ -95,6 +95,33 @@ async function main() {
   // Create demo users
   console.log('Creating users...');
 
+  // CEO
+  const ceo = await prisma.user.create({
+    data: {
+      username: 'ceo',
+      email: 'ceo@demo.com',
+      passwordHash: demoPassword,
+      fullName: 'วิชัย ซีอีโอ',
+      phone: '081-000-0000',
+      role: UserRole.CEO,
+      companyId: company.id,
+    },
+  });
+
+  // Sale Director
+  const saleDirector = await prisma.user.create({
+    data: {
+      username: 'director',
+      email: 'director@demo.com',
+      passwordHash: demoPassword,
+      fullName: 'สมศักดิ์ ผู้อำนวยการ',
+      phone: '081-999-9999',
+      role: UserRole.SD,
+      managerId: ceo.id,
+      companyId: company.id,
+    },
+  });
+
   // Sales Manager
   const salesManager = await prisma.user.create({
     data: {
@@ -104,6 +131,22 @@ async function main() {
       fullName: 'สมชาย ผู้จัดการ',
       phone: '081-111-1111',
       role: UserRole.SM,
+      managerId: saleDirector.id,
+      companyId: company.id,
+      territoryId: territories[0].id,
+    },
+  });
+
+  // Supervisor
+  const supervisor = await prisma.user.create({
+    data: {
+      username: 'supervisor',
+      email: 'supervisor@demo.com',
+      passwordHash: demoPassword,
+      fullName: 'สมหญิง หัวหน้างาน',
+      phone: '081-555-5555',
+      role: UserRole.SUP,
+      managerId: salesManager.id,
       companyId: company.id,
       territoryId: territories[0].id,
     },
@@ -118,7 +161,7 @@ async function main() {
       fullName: 'สวัสดี คุณสมชาย',
       phone: '082-222-2222',
       role: UserRole.SR,
-      managerId: salesManager.id,
+      managerId: supervisor.id,
       companyId: company.id,
       territoryId: territories[0].id,
     },
@@ -133,7 +176,7 @@ async function main() {
       fullName: 'ชัยชนะ พนักงานขาย',
       phone: '083-333-3333',
       role: UserRole.SR,
-      managerId: salesManager.id,
+      managerId: supervisor.id,
       companyId: company.id,
       territoryId: territories[1].id,
     },
@@ -148,6 +191,21 @@ async function main() {
       fullName: 'วิทยา ผลิตภัณฑ์',
       phone: '084-444-4444',
       role: UserRole.PM,
+      managerId: saleDirector.id,
+      companyId: company.id,
+    },
+  });
+
+  // Marketing Manager
+  const mm = await prisma.user.create({
+    data: {
+      username: 'mm',
+      email: 'mm@demo.com',
+      passwordHash: demoPassword,
+      fullName: 'สุดา การตลาด',
+      phone: '084-666-6666',
+      role: UserRole.MM,
+      managerId: saleDirector.id,
       companyId: company.id,
     },
   });
@@ -373,15 +431,19 @@ async function main() {
   console.log('✅ Seed completed!');
   console.log('');
   console.log('🔐 Demo Users:');
-  console.log('  Sales Manager: manager / demo1234');
-  console.log('  Sales Rep 1:   sales1  / demo1234');
-  console.log('  Sales Rep 2:   sales2  / demo1234');
-  console.log('  Product Mgr:   pm      / demo1234');
+  console.log('  CEO:            ceo        / demo1234');
+  console.log('  Sale Director:  director   / demo1234');
+  console.log('  Sales Manager:  manager    / demo1234');
+  console.log('  Supervisor:     supervisor / demo1234');
+  console.log('  Sales Rep 1:    sales1     / demo1234');
+  console.log('  Sales Rep 2:    sales2     / demo1234');
+  console.log('  Product Mgr:    pm         / demo1234');
+  console.log('  Marketing Mgr:  mm         / demo1234');
   console.log('');
   console.log('📊 Created:');
   console.log(`  - 1 Company`);
   console.log(`  - 7 Territories`);
-  console.log(`  - 4 Users`);
+  console.log(`  - 8 Users (CEO, SD, SM, MM, PM, SUP, 2xSR)`);
   console.log(`  - 13 Activity Types`);
   console.log(`  - 6 Customers (2xA, 2xB, 2xC)`);
   console.log(`  - 7 Contacts`);

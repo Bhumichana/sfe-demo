@@ -15,11 +15,13 @@ datasource db {
 // ============================================
 
 enum UserRole {
-  SR  // Sales Representative
-  SUP // Supervisor
+  CEO // Chief Executive Officer
+  SD  // Sale Director
   SM  // Sales Manager
-  PM  // Product Manager
   MM  // Marketing Manager
+  PM  // Product Manager
+  SUP // Supervisor
+  SR  // Sales Representative
 }
 
 model Company {

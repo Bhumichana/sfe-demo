@@ -112,19 +112,23 @@ export default function UsersPage() {
   });
 
   const roleColors: Record<string, string> = {
-    SR: 'bg-blue-100 text-blue-700',
-    SUP: 'bg-purple-100 text-purple-700',
+    CEO: 'bg-purple-100 text-purple-700',
+    SD: 'bg-indigo-100 text-indigo-700',
     SM: 'bg-green-100 text-green-700',
-    PM: 'bg-orange-100 text-orange-700',
     MM: 'bg-red-100 text-red-700',
+    PM: 'bg-orange-100 text-orange-700',
+    SUP: 'bg-blue-100 text-blue-700',
+    SR: 'bg-gray-100 text-gray-700',
   };
 
   const roleLabels: Record<string, string> = {
-    SR: 'Sales Rep',
-    SUP: 'Supervisor',
+    CEO: 'CEO',
+    SD: 'Sale Director',
     SM: 'Sales Manager',
-    PM: 'Product Manager',
     MM: 'Marketing Manager',
+    PM: 'Product Manager',
+    SUP: 'Supervisor',
+    SR: 'Sales Rep',
   };
 
   return (
@@ -187,11 +191,13 @@ export default function UsersPage() {
                 className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="ALL">ทั้งหมด</option>
-                <option value="SR">Sales Rep (SR)</option>
-                <option value="SUP">Supervisor (SUP)</option>
+                <option value="CEO">CEO</option>
+                <option value="SD">Sale Director (SD)</option>
                 <option value="SM">Sales Manager (SM)</option>
-                <option value="PM">Product Manager (PM)</option>
                 <option value="MM">Marketing Manager (MM)</option>
+                <option value="PM">Product Manager (PM)</option>
+                <option value="SUP">Supervisor (SUP)</option>
+                <option value="SR">Sales Rep (SR)</option>
               </select>
             </div>
 

@@ -49,11 +49,16 @@ export default function CreateTeamPage() {
       return;
     }
 
+    if (!currentUser || !currentUser.companyId) {
+      alert('ไม่สามารถระบุ Company ID ได้');
+      return;
+    }
+
     try {
       setLoading(true);
       await teamsApi.create({
         ...formData,
-        companyId: currentUser!.companyId,
+        companyId: currentUser.companyId,
         leaderId: formData.leaderId || undefined,
       });
 

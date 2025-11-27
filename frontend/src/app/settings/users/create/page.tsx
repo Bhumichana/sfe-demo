@@ -141,7 +141,7 @@ export default function UserCreatePage() {
       return;
     }
 
-    if (!currentUser) {
+    if (!currentUser || !currentUser.companyId) {
       alert('ไม่สามารถระบุ Company ID ได้');
       return;
     }
@@ -155,7 +155,7 @@ export default function UserCreatePage() {
         fullName: formData.fullName,
         phone: formData.phone || undefined,
         role: formData.role,
-        companyId: currentUser!.companyId,
+        companyId: currentUser.companyId,
         territoryId: formData.territoryId || undefined,
         managerId: formData.managerId || undefined,
         teamId: formData.teamId || undefined,

@@ -29,6 +29,11 @@ export class CreateUserDto {
   @IsString()
   phone?: string;
 
+  @ApiPropertyOptional({ example: 'https://example.com/avatar.jpg' })
+  @IsOptional()
+  @IsString()
+  avatarUrl?: string;
+
   @ApiProperty({ enum: UserRole, example: UserRole.SR })
   @IsEnum(UserRole)
   role: UserRole;

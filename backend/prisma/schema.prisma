@@ -48,6 +48,7 @@ model User {
   passwordHash String?   @map("password_hash")
   fullName     String    @map("full_name")
   phone        String?
+  avatarUrl    String?   @map("avatar_url")
   role         UserRole
   managerId    String?   @map("manager_id")
   companyId    String    @map("company_id")

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
-import BottomNav from '@/components/BottomNav';
+import MainLayout from '@/components/layouts/MainLayout';
 
 interface ActivityType {
   id: string;
@@ -32,8 +32,8 @@ export default function ActivitiesPage() {
     try {
       setLoading(true);
       const url = filter === 'active'
-        ? 'http://localhost:3000/api/activity-types?activeOnly=true'
-        : 'http://localhost:3000/api/activity-types';
+        ? 'http://localhost:3001/api/activity-types?activeOnly=true'
+        : 'http://localhost:3001/api/activity-types';
 
       const response = await axios.get(url);
       setActivities(response.data);
@@ -42,6 +42,21 @@ export default function ActivitiesPage() {
       alert('ไม่สามารถโหลดข้อมูลได้');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`คุณต้องการลบ "${name}" ใช่หรือไม่?\n\nการลบจะไม่สามารถกู้คืนได้`)) {
+      return;
+    }
+
+    try {
+      await axios.delete(`http://localhost:3001/api/activity-types/${id}`);
+      alert('ลบ Activity Type สำเร็จ');
+      fetchActivities();
+    } catch (error: any) {
+      console.error('Error deleting activity type:', error);
+      alert(error.response?.data?.message || 'ไม่สามารถลบ Activity Type ได้');
     }
   };
 
@@ -58,29 +73,29 @@ export default function ActivitiesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
-      <header className="bg-white border-b border-border shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => router.back()}
-              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
-            >
-              <svg className="w-6 h-6 text-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <div>
-              <h1 className="text-xl font-bold text-foreground">จัดการ Activity Types</h1>
-              <p className="text-xs text-muted-foreground">Manage Activity Types</p>
-            </div>
+    <MainLayout
+      title="จัดการ Activity Types"
+      subtitle="Manage Activity Types"
+      showBackButton={true}
+      backUrl="/settings"
+    >
+      <div className="space-y-6">
+        {/* Header Actions */}
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => router.push('/settings/activities/create')}
+            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium flex items-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            เพิ่ม Activity Type
+          </button>
+          <div className="text-sm text-muted-foreground">
+            ทั้งหมด: <span className="font-semibold text-foreground">{activities.length}</span> รายการ
           </div>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Filter Tabs */}
         <div className="bg-white rounded-xl shadow-sm border border-border p-2 flex gap-2">
           <button
@@ -143,7 +158,7 @@ export default function ActivitiesPage() {
                 key={activity.id}
                 className="bg-white rounded-xl shadow-sm border border-border p-4 hover:shadow-md transition-shadow"
               >
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <h3 className="font-semibold text-foreground">{activity.nameTh}</h3>
@@ -176,6 +191,28 @@ export default function ActivitiesPage() {
                     </span>
                   </div>
                 </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-2 pt-3 border-t border-border">
+                  <button
+                    onClick={() => router.push(`/settings/activities/${activity.id}/edit`)}
+                    className="flex-1 px-3 py-2 text-sm bg-warning text-white rounded-lg hover:bg-warning/90 transition-colors font-medium flex items-center justify-center gap-1"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    แก้ไข
+                  </button>
+                  <button
+                    onClick={() => handleDelete(activity.id, activity.nameTh)}
+                    className="flex-1 px-3 py-2 text-sm bg-error text-white rounded-lg hover:bg-error/90 transition-colors font-medium flex items-center justify-center gap-1"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    ลบ
+                  </button>
+                </div>
               </div>
             ))}
 
@@ -189,9 +226,7 @@ export default function ActivitiesPage() {
             )}
           </div>
         )}
-      </main>
-
-      <BottomNav />
-    </div>
+      </div>
+    </MainLayout>
   );
 }

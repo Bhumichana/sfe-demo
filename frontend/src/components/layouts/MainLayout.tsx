@@ -12,6 +12,7 @@ interface MainLayoutProps {
   title?: string;
   subtitle?: string;
   showBackButton?: boolean;
+  backUrl?: string; // URL to navigate to when back button is clicked
 }
 
 export default function MainLayout({
@@ -19,6 +20,7 @@ export default function MainLayout({
   title = 'SFE Mobile',
   subtitle = 'Sales Force Effectiveness',
   showBackButton = false,
+  backUrl,
 }: MainLayoutProps) {
   const router = useRouter();
   const { user, logout, initAuth } = useAuthStore();
@@ -85,7 +87,7 @@ export default function MainLayout({
             <div className="flex items-center gap-3">
               {showBackButton && (
                 <button
-                  onClick={() => router.back()}
+                  onClick={() => backUrl ? router.push(backUrl) : router.back()}
                   className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
                 >
                   <svg

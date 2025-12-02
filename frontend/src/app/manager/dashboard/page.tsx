@@ -125,6 +125,38 @@ export default function ManagerDashboard() {
         </div>
       </header>
 
+      {/* Welcome Banner */}
+      <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl p-6 shadow-lg">
+          <div className="flex items-center gap-4">
+            {user.avatarUrl ? (
+              <img
+                src={user.avatarUrl}
+                alt={user.fullName}
+                className="w-16 h-16 rounded-full object-cover border-2 border-white/50"
+              />
+            ) : (
+              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-white text-2xl font-bold border-2 border-white/30">
+                <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+            )}
+            <div className="flex-1 text-white">
+              <h2 className="text-xl font-bold drop-shadow-sm">ยินดีต้อนรับ!</h2>
+              <p className="text-sm opacity-95 mt-0.5">
+                {user.fullName} • {user.role}
+              </p>
+              {user.territory && (
+                <p className="text-xs opacity-90 mt-1">
+                  เขต: {user.territory.nameTh} ({user.territory.code})
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Main Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Date Filter Section */}

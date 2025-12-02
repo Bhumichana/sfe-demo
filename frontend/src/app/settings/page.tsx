@@ -109,9 +109,17 @@ export default function SettingsPage() {
         {user && (
           <div className="bg-white rounded-2xl shadow-md p-6 border border-border">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 gradient-gold rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                {user.fullName.charAt(0)}
-              </div>
+              {user.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user.fullName}
+                  className="w-16 h-16 rounded-full object-cover border-2 border-primary/20"
+                />
+              ) : (
+                <div className="w-16 h-16 gradient-gold rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                  {user.fullName.charAt(0)}
+                </div>
+              )}
               <div>
                 <h2 className="text-lg font-bold text-foreground">{user.fullName}</h2>
                 <p className="text-sm text-muted-foreground">{user.email}</p>

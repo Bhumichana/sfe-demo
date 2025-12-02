@@ -26,6 +26,19 @@ async function bootstrap() {
     optionsSuccessStatus: 204,
   });
 
+  // Log all requests
+  app.use((req, res, next) => {
+    if (req.method === 'PATCH' && req.path.includes('/users/')) {
+      console.log('🔍 PATCH Request:', {
+        method: req.method,
+        path: req.path,
+        body: req.body,
+        headers: req.headers['content-type'],
+      });
+    }
+    next();
+  });
+
   // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({

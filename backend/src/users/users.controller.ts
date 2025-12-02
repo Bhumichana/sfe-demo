@@ -64,6 +64,7 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 409, description: 'Username or email already exists' })
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    console.log('📝 Update User Request:', { id, body: updateUserDto });
     return this.usersService.update(id, updateUserDto);
   }
 

@@ -30,7 +30,8 @@ export default function LoginPage() {
         }
       } catch (error) {
         console.error('Error fetching company logo:', error);
-        // If error, keep default logo
+        // If error, use placeholder logo from Vercel Blob
+        setCompanyLogo('https://kbiduzwyokfr2wr5.public.blob.vercel-storage.com/blank-bird-logo-png-15.png');
       }
     };
 

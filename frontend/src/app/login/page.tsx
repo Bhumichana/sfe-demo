@@ -16,7 +16,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [companyLogo, setCompanyLogo] = useState<string>('');
+  const [companyLogo, setCompanyLogo] = useState<string>('https://kbiduzwyokfr2wr5.public.blob.vercel-storage.com/blank-bird-logo-design-idea-png-15.png');
 
   // Fetch company logo
   useEffect(() => {

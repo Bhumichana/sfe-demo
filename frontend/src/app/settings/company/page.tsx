@@ -139,13 +139,21 @@ export default function CompanySettingsPage() {
       setSaving(true);
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
+      console.log('Saving company data:', {
+        companyId: user?.companyId,
+        apiUrl,
+        formData
+      });
+
       await axios.patch(`${apiUrl}/company/${user?.companyId}`, formData);
 
       alert('บันทึกข้อมูลสำเร็จ');
       router.push('/settings');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving company data:', error);
-      alert('ไม่สามารถบันทึกข้อมูลได้');
+      console.error('Error response:', error.response?.data);
+      const errorMessage = error.response?.data?.message || error.message || 'ไม่สามารถบันทึกข้อมูลได้';
+      alert(`เกิดข้อผิดพลาด: ${errorMessage}`);
     } finally {
       setSaving(false);
     }

@@ -10,4 +10,9 @@ export class UpdateUserDto extends PartialType(
   @IsString()
   @MinLength(6)
   password?: string;
+
+  @ApiPropertyOptional({ example: 'https://example.com/avatar.jpg' })
+  @IsOptional()
+  @IsString()
+  avatarUrl?: string;
 }

@@ -1,5 +1,5 @@
 // User roles
-export type UserRole = 'SR' | 'SUP' | 'SM' | 'PM' | 'MM';
+export type UserRole = 'CEO' | 'SD' | 'SM' | 'MM' | 'PM' | 'SUP' | 'SR';
 
 // User interface
 export interface User {

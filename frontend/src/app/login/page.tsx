@@ -23,9 +23,8 @@ export default function LoginPage() {
     const fetchCompanyLogo = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-        // Using the demo company ID
-        const companyId = 'b044a5c3-477e-4b01-a2fc-9b27ae1eb585';
-        const response = await axios.get(`${apiUrl}/company/${companyId}`);
+        // Fetch default company (first company in system)
+        const response = await axios.get(`${apiUrl}/company/default/info`);
         if (response.data.logoUrl) {
           setCompanyLogo(response.data.logoUrl);
         }

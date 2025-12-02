@@ -14,6 +14,14 @@ import { UpdateCompanyDto } from './dto';
 export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
 
+  @Get('default/info')
+  @ApiOperation({ summary: 'Get default company (first company in system)' })
+  @ApiResponse({ status: 200, description: 'Returns default company details' })
+  @ApiResponse({ status: 404, description: 'No company found' })
+  findDefault() {
+    return this.companyService.findDefault();
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get company by ID' })
   @ApiResponse({ status: 200, description: 'Returns company details' })

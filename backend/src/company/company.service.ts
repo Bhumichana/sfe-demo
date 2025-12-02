@@ -6,6 +6,35 @@ import { UpdateCompanyDto } from './dto';
 export class CompanyService {
   constructor(private prisma: PrismaService) {}
 
+  async findDefault() {
+    const company = await this.prisma.company.findFirst({
+      orderBy: { createdAt: 'asc' },
+      select: {
+        id: true,
+        name: true,
+        taxId: true,
+        address: true,
+        district: true,
+        province: true,
+        postalCode: true,
+        phone: true,
+        email: true,
+        website: true,
+        logoUrl: true,
+        storageUsedMb: true,
+        storageLimitMb: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!company) {
+      throw new NotFoundException('No company found in system');
+    }
+
+    return company;
+  }
+
   async findOne(id: string) {
     const company = await this.prisma.company.findUnique({
       where: { id },

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
 import { DEMO_USERS } from '@/lib/constants';
 import type { UserRole } from '@/types';
+import axios from 'axios';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,6 +16,27 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [companyLogo, setCompanyLogo] = useState<string>('');
+
+  // Fetch company logo
+  useEffect(() => {
+    const fetchCompanyLogo = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+        // Using the demo company ID
+        const companyId = 'b044a5c3-477e-4b01-a2fc-9b27ae1eb585';
+        const response = await axios.get(`${apiUrl}/company/${companyId}`);
+        if (response.data.logoUrl) {
+          setCompanyLogo(response.data.logoUrl);
+        }
+      } catch (error) {
+        console.error('Error fetching company logo:', error);
+        // If error, keep default logo
+      }
+    };
+
+    fetchCompanyLogo();
+  }, []);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -56,10 +78,18 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Logo & Title */}
         <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg">
-            <svg className="w-12 h-12 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+          <div className="w-20 h-20 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg overflow-hidden">
+            {companyLogo ? (
+              <img
+                src={companyLogo}
+                alt="Company Logo"
+                className="w-full h-full object-contain p-2"
+              />
+            ) : (
+              <svg className="w-12 h-12 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            )}
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">SFE Mobile</h1>
           <p className="text-white/80">Sales Force Effectiveness</p>

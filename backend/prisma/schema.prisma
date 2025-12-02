@@ -27,6 +27,14 @@ enum UserRole {
 model Company {
   id             String   @id @default(uuid())
   name           String
+  taxId          String?  @map("tax_id") // เลขผู้เสียภาษีอากร
+  address        String?
+  district       String?  @map("district") // อำเภอ/เขต
+  province       String?
+  postalCode     String?  @map("postal_code")
+  phone          String?
+  email          String?
+  website        String?
   logoUrl        String?  @map("logo_url")
   settings       Json?
   storageUsedMb  Int      @default(0) @map("storage_used_mb")

@@ -35,6 +35,10 @@ async function bootstrap() {
       transformOptions: {
         enableImplicitConversion: true,
       },
+      exceptionFactory: (errors) => {
+        console.error('❌ Validation Error:', JSON.stringify(errors, null, 2));
+        return errors;
+      },
     }),
   );
 

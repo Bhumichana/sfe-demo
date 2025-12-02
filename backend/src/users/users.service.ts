@@ -180,12 +180,15 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
+    console.log('🔍 Update User Service Called:', { id, updateUserDto });
+
     // Check if user exists
     const existingUser = await this.prisma.user.findUnique({
       where: { id },
     });
 
     if (!existingUser) {
+      console.log('❌ User not found:', id);
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 

@@ -65,14 +65,16 @@ export class CustomersService {
       throw new BadRequestException('Customer code already exists');
     }
 
-    // Verify creator exists (if provided)
+    // Verify creator exists (if provided), but don't fail if not found
+    // This allows customer creation during initial setup without users
     if (createDto.createdBy) {
       const creator = await this.prisma.user.findUnique({
         where: { id: createDto.createdBy },
       });
 
+      // If creator not found, set to null instead of failing
       if (!creator) {
-        throw new NotFoundException('User not found');
+        createDto.createdBy = null;
       }
     }
 

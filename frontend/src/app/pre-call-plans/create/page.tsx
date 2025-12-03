@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
 import { preCallPlansApi, customersApi, contactsApi } from '@/services/api';
@@ -24,7 +24,7 @@ const MOCK_ACTIVITIES = [
   'ประมาณงบการ engage',
 ];
 
-export default function CreatePreCallPlanPage() {
+function CreatePreCallPlanPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuthStore();
@@ -461,5 +461,13 @@ export default function CreatePreCallPlanPage() {
           onSuccess={handleCustomerCreated}
         />
     </MainLayout>
+  );
+}
+
+export default function CreatePreCallPlanPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CreatePreCallPlanPageContent />
+    </Suspense>
   );
 }

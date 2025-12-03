@@ -19,7 +19,7 @@ export default function QuickCreateCustomerModal({
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
-    type: 'B' as 'A' | 'B' | 'C',
+    // type is auto-calculated from monthlyRevenue
     address: '',
     phone: '',
     contactName: '',
@@ -46,7 +46,7 @@ export default function QuickCreateCustomerModal({
 
       const customer = await customersApi.create({
         name: formData.name,
-        type: formData.type,
+        // type is auto-calculated from monthlyRevenue (not needed)
         address: formData.address || undefined,
         phone: formData.phone || undefined,
         // Add contact if name is provided
@@ -73,7 +73,6 @@ export default function QuickCreateCustomerModal({
   const handleClose = () => {
     setFormData({
       name: '',
-      type: 'B',
       address: '',
       phone: '',
       contactName: '',
@@ -122,24 +121,6 @@ export default function QuickCreateCustomerModal({
               <p className="text-sm text-blue-800">
                 ℹ️ <strong>รหัสลูกค้า</strong> จะถูกสร้างอัตโนมัติโดยระบบ (เช่น CUST0001, CUST0002)
               </p>
-            </div>
-
-            {/* Customer Type */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                ประเภทลูกค้า <span className="text-red-500">*</span>
-              </label>
-              <select
-                name="type"
-                value={formData.type}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="A">A - VIP (&gt; 500K/เดือน)</option>
-                <option value="B">B - สำคัญ (100-500K/เดือน)</option>
-                <option value="C">C - ทั่วไป (&lt; 100K/เดือน)</option>
-              </select>
             </div>
 
             {/* Customer Name */}

@@ -23,6 +23,11 @@ interface Team {
   id: string;
   code: string;
   name: string;
+  leader?: {
+    id: string;
+    fullName: string;
+    role: string;
+  };
 }
 
 export default function UserCreatePage() {

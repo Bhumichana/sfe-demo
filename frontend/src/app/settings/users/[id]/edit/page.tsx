@@ -23,6 +23,11 @@ interface Team {
   id: string;
   code: string;
   name: string;
+  leader?: {
+    id: string;
+    fullName: string;
+    role: string;
+  };
 }
 
 export default function UserEditPage() {
@@ -127,19 +132,6 @@ export default function UserEditPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-
-    // If teamId changed, auto-fill managerId from team leader
-    if (name === 'teamId' && value) {
-      const selectedTeam = teams.find(team => team.id === value);
-      if (selectedTeam && selectedTeam.leader) {
-        setFormData((prev) => ({
-          ...prev,
-          [name]: value,
-          managerId: selectedTeam.leader.id,
-        }));
-        return;
-      }
-    }
 
     setFormData((prev) => ({
       ...prev,

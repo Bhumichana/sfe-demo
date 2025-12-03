@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
-import { callReportsApi, customersApi, activityTypesApi } from '@/services/api';
+import { callReportsApi, customersApi, contactsApi, activityTypesApi } from '@/services/api';
 import { Customer, Contact, ActivityTypeData, ActivityType, CallReport } from '@/types';
 import { format } from 'date-fns';
 import MainLayout from '@/components/layouts/MainLayout';
@@ -111,7 +111,7 @@ export default function EditCallReportPage() {
 
       // Load contacts for the customer
       if (reportData.customerId) {
-        const contactsData = await customersApi.getContacts(reportData.customerId);
+        const contactsData = await contactsApi.findByCustomer(reportData.customerId);
         setContacts(contactsData);
       }
 

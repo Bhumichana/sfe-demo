@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
-import { callReportsApi, customersApi, activityTypesApi, preCallPlansApi } from '@/services/api';
+import { callReportsApi, customersApi, contactsApi, activityTypesApi, preCallPlansApi } from '@/services/api';
 import { Customer, Contact, ActivityTypeData, ActivityType, CreateCallReportDto, PreCallPlan } from '@/types';
 import { format } from 'date-fns';
 import MainLayout from '@/components/layouts/MainLayout';
@@ -171,7 +171,7 @@ function CreateCallReportPageContent() {
 
   const loadContacts = async (customerId: string) => {
     try {
-      const contactsData = await customersApi.getContacts(customerId);
+      const contactsData = await contactsApi.findByCustomer(customerId);
       setContacts(contactsData);
     } catch (error) {
       console.error('Failed to load contacts:', error);

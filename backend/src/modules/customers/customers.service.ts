@@ -238,7 +238,6 @@ export class CustomersService {
       data: {
         ...(updateDto.code && { code: updateDto.code }),
         ...(updateDto.name && { name: updateDto.name }),
-        ...(updateDto.type && { type: updateDto.type }),
         ...(updateDto.monthlyRevenue !== undefined && {
           monthlyRevenue: updateDto.monthlyRevenue,
         }),

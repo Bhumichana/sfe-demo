@@ -126,7 +126,7 @@ export interface CreateCustomerDto {
 export interface UpdateCustomerDto {
   code?: string;
   name?: string;
-  type?: CustomerType;
+  // type is auto-calculated from monthlyRevenue (not updatable directly)
   monthlyRevenue?: number;
   address?: string;
   lat?: number;

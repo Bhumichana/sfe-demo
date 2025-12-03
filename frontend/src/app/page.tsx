@@ -108,7 +108,7 @@ export default function Home() {
             return {
               id: plan.id,
               customerName: plan.customer?.name || 'ไม่ระบุลูกค้า',
-              customerClass: (plan.customer?.type || 'C') as 'A' | 'B' | 'C',
+              customerType: (plan.customer?.type || 'C') as 'A' | 'B' | 'C',
               status: 'approved' as const,
               date: planDate,
               time: format(planDate, 'HH:mm'),

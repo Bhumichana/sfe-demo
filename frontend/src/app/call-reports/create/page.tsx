@@ -465,7 +465,7 @@ function CreateCallReportPageContent() {
                 <option value="">-- เลือกลูกค้า --</option>
                 {customers.map((customer) => (
                   <option key={customer.id} value={customer.id}>
-                    {customer.nameTh} (Class {customer.customerClass})
+                    {customer.name} (Class {customer.type})
                   </option>
                 ))}
               </select>

@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 export interface RecentCall {
   id: string;
   customerName: string;
-  customerClass: 'A' | 'B' | 'C';
+  customerType: 'A' | 'B' | 'C';
   status: 'completed' | 'pending' | 'approved' | 'rejected';
   date: Date;
   time: string;
@@ -42,7 +42,7 @@ export default function RecentCallItem({ call, onClick }: RecentCallItemProps) {
   };
 
   const status = statusConfig[call.status];
-  const classStyle = classConfig[call.customerClass];
+  const classStyle = classConfig[call.customerType];
 
   return (
     <div
@@ -54,7 +54,7 @@ export default function RecentCallItem({ call, onClick }: RecentCallItemProps) {
           <div className="flex items-center gap-2 mb-1">
             <h4 className="font-bold text-gray-900 text-base">{call.customerName}</h4>
             <span className={`px-2 py-0.5 rounded-full text-xs font-bold border ${classStyle}`}>
-              Class {call.customerClass}
+              Class {call.customerType}
             </span>
           </div>
           <p className="text-sm text-gray-900 font-semibold">

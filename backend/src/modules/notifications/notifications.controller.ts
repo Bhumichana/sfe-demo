@@ -6,9 +6,11 @@ import {
   Delete,
   Param,
   Query,
+  Body,
   ParseBoolPipe,
 } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
+import { UpdateNotificationPreferencesDto } from './dto/update-notification-preferences.dto';
 
 @Controller('notifications')
 export class NotificationsController {
@@ -40,5 +42,27 @@ export class NotificationsController {
   @Delete(':id')
   delete(@Param('id') id: string, @Query('userId') userId: string) {
     return this.notificationsService.delete(id, userId);
+  }
+
+  // ============================================
+  // Notification Preferences Endpoints
+  // ============================================
+
+  @Get('preferences/:userId')
+  getPreferences(@Param('userId') userId: string) {
+    return this.notificationsService.getPreferences(userId);
+  }
+
+  @Put('preferences/:userId')
+  updatePreferences(
+    @Param('userId') userId: string,
+    @Body() updateDto: UpdateNotificationPreferencesDto,
+  ) {
+    return this.notificationsService.updatePreferences(userId, updateDto);
+  }
+
+  @Post('preferences/:userId/reset')
+  resetPreferences(@Param('userId') userId: string) {
+    return this.notificationsService.resetPreferences(userId);
   }
 }

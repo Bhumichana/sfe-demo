@@ -1,17 +1,29 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '../stores/authStore';
 import { colors, spacing, fontSize, fontWeight } from '../theme/colors';
 
 export default function HomeScreen() {
+  const navigation = useNavigation();
   const { user, logout } = useAuthStore();
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>Welcome!</Text>
-        <Text style={styles.subtitle}>You are logged in</Text>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.title}>Welcome!</Text>
+          <Text style={styles.subtitle}>You are logged in</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.settingsButton}
+          onPress={() => navigation.navigate('Settings' as never)}
+        >
+          <Text style={styles.settingsIcon}>⚙️</Text>
+        </TouchableOpacity>
+      </View>
 
+      <View style={styles.content}>
         {user && (
           <View style={styles.userCard}>
             <Text style={styles.label}>Name:</Text>
@@ -45,6 +57,25 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    padding: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  settingsButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  settingsIcon: {
+    fontSize: 24,
+  },
   content: {
     flex: 1,
     padding: spacing.lg,
@@ -58,7 +89,6 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: fontSize.lg,
     color: colors.textSecondary,
-    marginBottom: spacing.xl,
   },
   userCard: {
     backgroundColor: colors.surface,

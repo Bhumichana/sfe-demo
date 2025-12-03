@@ -1,26 +1,35 @@
-# SFE Mobile - Implementation Plan
+# SFE (Sales Force Effectiveness) - Implementation Plan
 
 ## 🎯 Project Overview
-Sales Force Effectiveness (SFE) Mobile - ระบบบริหารจัดการพนักงานขาย พร้อมระบบอนุมัติและรายงานแบบ Real-time
+Sales Force Effectiveness (SFE) - ระบบบริหารจัดการพนักงานขาย พร้อมระบบอนุมัติและรายงานแบบ Real-time
 
-## 📱 Tech Stack Recommendation
+## ⚠️ IMPORTANT: Architecture Clarification
 
-### Frontend
-- **React Native** + **Expo** (Cross-platform iOS/Android)
+**นี่คือ Web Application แบบ Mobile-First Design ไม่ใช่ Native Mobile App**
+
+โครงสร้างโปรเจกต์:
+- **Frontend (Web)**: Next.js 16 + React + TypeScript - รองรับทั้ง Desktop และ Mobile Browser
+- **Backend**: NestJS + TypeScript
+- **Database**: PostgreSQL + Prisma ORM
+- **Design**: Mobile-First Responsive Design (ออกแบบให้ใช้งานบนมือถือผ่าน Web Browser ได้ดี)
+
+**หมายเหตุ**: แม้จะมีโฟลเดอร์ `mobile/` ในโปรเจกต์ แต่นั่นเป็นส่วนทดลองเท่านั้น **ระบบหลักที่ใช้งานจริงคือ Web Application** ที่อยู่ในโฟลเดอร์ `frontend/`
+
+## 📱 Tech Stack (Current Implementation)
+
+### Frontend (Web - Mobile-First)
+- **Next.js 16** (React Framework with App Router)
 - **TypeScript** (Type safety)
-- **React Navigation** (Navigation)
-- **React Native Paper** หรือ **NativeBase** (UI Components)
+- **Tailwind CSS** (Utility-first CSS)
+- **shadcn/ui** (UI Components)
 - **React Hook Form** + **Zod** (Form validation)
 - **TanStack Query** (Data fetching & caching)
-- **Zustand** หรือ **Redux Toolkit** (State management)
+- **Zustand** (State management)
 - **date-fns** (Date manipulation)
-- **i18next** + **react-i18next** (Internationalization - Thai/English)
-- **@react-native-google-signin/google-signin** (Google SSO)
-- **react-native-maps** (GPS & Maps)
-- **expo-camera** + **expo-image-picker** (Camera & Photos)
-- **@nozbe/watermelondb** (Local database for offline mode)
-- **@react-native-community/netinfo** (Network status detection)
-- **expo-file-system** (Local file storage for draft photos)
+- **Axios** (HTTP client)
+
+### ~~Mobile App (Not in Use)~~
+~~แม้มีโฟลเดอร์ mobile/ แต่ไม่ได้ใช้งานจริง - โปรเจกต์นี้เป็น Web Application เท่านั้น~~
 
 ### Backend
 - **Node.js** + **Express** หรือ **NestJS**
@@ -220,53 +229,65 @@ notifications
   - reference_id
   - is_read
   - created_at
+
+-- Notification Preferences (NEW - Added 2025-12-03)
+notification_preferences
+  - id
+  - user_id (unique)
+  - plan_approved (boolean, default: true)
+  - plan_rejected (boolean, default: true)
+  - plan_pending (boolean, default: true)
+  - reminder (boolean, default: true)
+  - coaching (boolean, default: true)
+  - system (boolean, default: true)
+  - email_notifications (boolean, default: false)
+  - push_notifications (boolean, default: true)
+  - sound_enabled (boolean, default: true)
+  - vibration_enabled (boolean, default: true)
+  - created_at
+  - updated_at
 ```
 
 ## 🏗️ Project Structure
 
 ```
 orex-sfe/
-├── mobile/                    # React Native App
+├── frontend/                 # 🌐 Web Application (PRIMARY - Next.js 16)
 │   ├── src/
-│   │   ├── components/       # Reusable components
-│   │   │   ├── common/       # Button, Input, Card, etc
-│   │   │   ├── forms/        # Form components
-│   │   │   └── charts/       # Chart components
-│   │   ├── screens/          # Screen components
-│   │   │   ├── auth/
-│   │   │   │   ├── LoginScreen.tsx
-│   │   │   │   └── RoleSelectionScreen.tsx
-│   │   │   ├── dashboard/
-│   │   │   │   ├── SRDashboard.tsx
-│   │   │   │   └── ManagerDashboard.tsx
-│   │   │   ├── pre-call/
-│   │   │   │   ├── PreCallPlanList.tsx
-│   │   │   │   ├── PreCallPlanForm.tsx
-│   │   │   │   └── PreCallPlanApproval.tsx
-│   │   │   ├── call-report/
-│   │   │   │   ├── CallReportList.tsx
-│   │   │   │   ├── CallReportForm.tsx
-│   │   │   │   └── CallReportDetail.tsx
-│   │   │   ├── check-in/
-│   │   │   │   └── CheckInScreen.tsx
-│   │   │   ├── photo/
-│   │   │   │   └── QuickPhotoScreen.tsx
-│   │   │   ├── calendar/
-│   │   │   │   └── CalendarScreen.tsx
-│   │   │   └── settings/
-│   │   │       └── SettingsScreen.tsx
-│   │   ├── navigation/       # Navigation setup
-│   │   ├── services/         # API calls
-│   │   ├── hooks/           # Custom hooks
-│   │   ├── stores/          # State management
-│   │   ├── utils/           # Helpers, constants
-│   │   ├── types/           # TypeScript types
-│   │   └── theme/           # Design tokens
-│   ├── assets/
+│   │   ├── app/             # Next.js App Router
+│   │   │   ├── (auth)/     # Auth pages
+│   │   │   │   └── login/
+│   │   │   ├── (dashboard)/
+│   │   │   │   ├── page.tsx
+│   │   │   │   └── sr/      # Sales Rep Dashboard
+│   │   │   ├── manager/     # Manager Dashboard & Features
+│   │   │   │   ├── dashboard/
+│   │   │   │   └── approval/
+│   │   │   └── settings/    # Settings Pages
+│   │   │       ├── page.tsx               # Main Settings
+│   │   │       ├── notifications/         # 🆕 Notification Preferences
+│   │   │       ├── users/
+│   │   │       ├── teams/
+│   │   │       ├── territories/
+│   │   │       ├── activities/
+│   │   │       ├── profile/
+│   │   │       └── company/
+│   │   ├── components/      # Reusable React components
+│   │   │   ├── layouts/     # Layout components
+│   │   │   ├── ui/          # shadcn/ui components
+│   │   │   └── features/    # Feature-specific components
+│   │   ├── services/        # API services
+│   │   ├── stores/          # Zustand stores
+│   │   ├── lib/             # Utilities & helpers
+│   │   └── types/           # TypeScript types
+│   ├── public/
 │   ├── package.json
-│   └── app.json
+│   └── next.config.ts
 │
-├── backend/                  # Node.js Backend
+├── mobile/                   # ⚠️ EXPERIMENTAL ONLY - NOT IN USE
+│   └── (Legacy React Native code - not actively used)
+│
+├── backend/                  # 🔧 NestJS Backend API
 │   ├── src/
 │   │   ├── modules/
 │   │   │   ├── auth/
@@ -795,12 +816,30 @@ GET    /api/territories/:id/customers         # Get customers in territory
 GET    /api/territories/:id/stats             # Territory statistics
 ```
 
-### Notifications
+### Notifications & Preferences
 ```
-GET    /api/notifications
-PUT    /api/notifications/:id/read
-PUT    /api/notifications/read-all
+# Notifications
+GET    /api/notifications/user/:userId                      # Get user notifications
+GET    /api/notifications/user/:userId/unread-count        # Get unread count
+PUT    /api/notifications/:id/read                         # Mark as read
+PUT    /api/notifications/user/:userId/read-all            # Mark all as read
+DELETE /api/notifications/:id                              # Delete notification
+
+# Notification Preferences (NEW - Added 2025-12-03)
+GET    /api/notifications/preferences/:userId              # Get preferences (auto-create default)
+PUT    /api/notifications/preferences/:userId              # Update preferences
+POST   /api/notifications/preferences/:userId/reset        # Reset to defaults
 ```
+
+**Notification Preferences Features**:
+- ✅ Per-user customizable notification settings
+- ✅ Control notification types: Plan Approved, Plan Rejected, Plan Pending, Reminders, Coaching, System
+- ✅ Choose delivery methods: Push Notifications, Email
+- ✅ Configure sound and vibration settings
+- ✅ Auto-create default preferences on first access
+- ✅ Real-time updates with optimistic UI updates
+- ✅ Reset to defaults functionality
+- ✅ Web UI at `/settings/notifications` (Mobile-First Design)
 
 ## ⚡ Key Features Implementation Notes
 

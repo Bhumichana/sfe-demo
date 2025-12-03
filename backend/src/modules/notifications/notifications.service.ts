@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
+import { UpdateNotificationPreferencesDto } from './dto/update-notification-preferences.dto';
 
 @Injectable()
 export class NotificationsService {
@@ -65,6 +66,79 @@ export class NotificationsService {
       where: {
         id,
         userId, // Ensure user owns this notification
+      },
+    });
+  }
+
+  // ============================================
+  // Notification Preferences Methods
+  // ============================================
+
+  /**
+   * Get user's notification preferences
+   * Creates default preferences if not exist
+   */
+  async getPreferences(userId: string) {
+    let preferences = await this.prisma.notificationPreferences.findUnique({
+      where: { userId },
+    });
+
+    // Create default preferences if not exist
+    if (!preferences) {
+      preferences = await this.prisma.notificationPreferences.create({
+        data: {
+          userId,
+          planApproved: true,
+          planRejected: true,
+          planPending: true,
+          reminder: true,
+          coaching: true,
+          system: true,
+          emailNotifications: false,
+          pushNotifications: true,
+          soundEnabled: true,
+          vibrationEnabled: true,
+        },
+      });
+    }
+
+    return preferences;
+  }
+
+  /**
+   * Update user's notification preferences
+   */
+  async updatePreferences(
+    userId: string,
+    updateDto: UpdateNotificationPreferencesDto,
+  ) {
+    // First ensure preferences exist
+    await this.getPreferences(userId);
+
+    // Then update
+    return this.prisma.notificationPreferences.update({
+      where: { userId },
+      data: updateDto,
+    });
+  }
+
+  /**
+   * Reset user's notification preferences to default
+   */
+  async resetPreferences(userId: string) {
+    return this.prisma.notificationPreferences.update({
+      where: { userId },
+      data: {
+        planApproved: true,
+        planRejected: true,
+        planPending: true,
+        reminder: true,
+        coaching: true,
+        system: true,
+        emailNotifications: false,
+        pushNotifications: true,
+        soundEnabled: true,
+        vibrationEnabled: true,
       },
     });
   }

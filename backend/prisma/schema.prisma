@@ -75,13 +75,14 @@ model User {
   team         Team?      @relation("TeamMembers", fields: [teamId], references: [id])
   teamsLed     Team[]     @relation("TeamLeader")
 
-  preCallPlans     PreCallPlan[]
-  callReports      CallReport[]
-  approvedPlans    PreCallPlan[]    @relation("ApprovedBy")
-  coachingRecords  CoachingRecord[]
-  calendarEvents   CalendarEvent[]
-  notifications    Notification[]
-  customersCreated Customer[]
+  preCallPlans           PreCallPlan[]
+  callReports            CallReport[]
+  approvedPlans          PreCallPlan[]            @relation("ApprovedBy")
+  coachingRecords        CoachingRecord[]
+  calendarEvents         CalendarEvent[]
+  notifications          Notification[]
+  notificationPreference NotificationPreferences?
+  customersCreated       Customer[]
 
   @@index([companyId])
   @@index([territoryId])
@@ -437,6 +438,28 @@ model Notification {
   @@index([userId])
   @@index([isRead])
   @@map("notifications")
+}
+
+model NotificationPreferences {
+  id                    String   @id @default(uuid())
+  userId                String   @unique @map("user_id")
+  planApproved          Boolean  @default(true) @map("plan_approved")
+  planRejected          Boolean  @default(true) @map("plan_rejected")
+  planPending           Boolean  @default(true) @map("plan_pending")
+  reminder              Boolean  @default(true) @map("reminder")
+  coaching              Boolean  @default(true) @map("coaching")
+  system                Boolean  @default(true) @map("system")
+  emailNotifications    Boolean  @default(false) @map("email_notifications")
+  pushNotifications     Boolean  @default(true) @map("push_notifications")
+  soundEnabled          Boolean  @default(true) @map("sound_enabled")
+  vibrationEnabled      Boolean  @default(true) @map("vibration_enabled")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("notification_preferences")
 }
 
 // ============================================

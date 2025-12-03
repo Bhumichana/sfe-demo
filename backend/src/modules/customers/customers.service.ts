@@ -369,36 +369,8 @@ export class CustomersService {
       },
     });
 
-    // If user not found, return all customers (for initial setup or demo)
     if (!user) {
-      const where: any = { isActive: true };
-      if (territoryId) where.territoryId = territoryId;
-      if (type) where.type = type;
-      if (search) {
-        where.OR = [
-          { name: { contains: search, mode: 'insensitive' } },
-          { code: { contains: search, mode: 'insensitive' } },
-          { address: { contains: search, mode: 'insensitive' } },
-        ];
-      }
-
-      const customers = await this.prisma.customer.findMany({
-        where,
-        include: {
-          territory: { select: { id: true, nameTh: true, code: true } },
-          contacts: {
-            where: { isPrimary: true },
-            select: { id: true, name: true, position: true, phone: true },
-          },
-          _count: { select: { preCallPlans: true, callReports: true } },
-        },
-        orderBy: { name: 'asc' },
-      });
-
-      return customers.map(customer => ({
-        ...customer,
-        statistics: { totalPlans: customer._count.preCallPlans, totalReports: customer._count.callReports, lastVisit: null },
-      }));
+      throw new NotFoundException('User not found');
     }
 
     const where: any = {};

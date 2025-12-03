@@ -9,8 +9,7 @@ export class CreateCustomerDto {
   @IsString()
   name: string;
 
-  @IsEnum(CustomerType)
-  type: CustomerType;
+  // type is auto-calculated from monthlyRevenue (not required in request)
 
   @IsOptional()
   @IsNumber()

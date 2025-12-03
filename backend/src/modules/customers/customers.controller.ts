@@ -24,8 +24,8 @@ export class CustomersController {
     if (req.user?.userId) {
       createCustomerDto.createdBy = req.user.userId;
     } else {
-      // Default to demo user if not authenticated (for testing)
-      createCustomerDto.createdBy = '8e8a0bb6-2ac7-41b5-99a3-d249ddd51e02';
+      // Default to demo user if not authenticated (for testing) - sales1
+      createCustomerDto.createdBy = '5b1a4aaf-f81a-4612-83f1-2b6fd1e7c849';
     }
     return this.customersService.create(createCustomerDto);
   }
@@ -41,9 +41,31 @@ export class CustomersController {
     return this.customersService.findAll(territoryId, type, search, isActiveBoolean);
   }
 
+  @Get('my-customers')
+  getMyCustomers(
+    @Request() req,
+    @Query('territoryId') territoryId?: string,
+    @Query('type') type?: CustomerType,
+    @Query('search') search?: string,
+  ) {
+    const userId = req.user?.userId || '5b1a4aaf-f81a-4612-83f1-2b6fd1e7c849'; // Default to demo user (sales1)
+    return this.customersService.getMyCustomers(userId, territoryId, type, search);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.customersService.findOne(id);
+  }
+
+  @Get(':id/statistics')
+  getStatistics(
+    @Param('id') id: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    const start = startDate ? new Date(startDate) : undefined;
+    const end = endDate ? new Date(endDate) : undefined;
+    return this.customersService.getCustomerStatistics(id, start, end);
   }
 
   @Patch(':id')

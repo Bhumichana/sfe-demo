@@ -47,6 +47,16 @@ export class UsersService {
       }
     }
 
+    // Validate team exists if teamId provided
+    if (createUserDto.teamId) {
+      const team = await this.prisma.team.findUnique({
+        where: { id: createUserDto.teamId },
+      });
+      if (!team) {
+        throw new BadRequestException('Team not found');
+      }
+    }
+
     // Hash password
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
 
@@ -60,6 +70,13 @@ export class UsersService {
       include: {
         company: true,
         territory: true,
+        team: {
+          select: {
+            id: true,
+            code: true,
+            name: true,
+          },
+        },
         manager: {
           select: {
             id: true,
@@ -143,6 +160,13 @@ export class UsersService {
       include: {
         company: true,
         territory: true,
+        team: {
+          select: {
+            id: true,
+            code: true,
+            name: true,
+          },
+        },
         manager: {
           select: {
             id: true,
@@ -241,6 +265,16 @@ export class UsersService {
       }
     }
 
+    // Validate team exists if teamId provided
+    if (updateUserDto.teamId) {
+      const team = await this.prisma.team.findUnique({
+        where: { id: updateUserDto.teamId },
+      });
+      if (!team) {
+        throw new BadRequestException('Team not found');
+      }
+    }
+
     // Hash password if provided
     let passwordHash: string | undefined;
     if (updateUserDto.password) {
@@ -258,6 +292,13 @@ export class UsersService {
       include: {
         company: true,
         territory: true,
+        team: {
+          select: {
+            id: true,
+            code: true,
+            name: true,
+          },
+        },
         manager: {
           select: {
             id: true,

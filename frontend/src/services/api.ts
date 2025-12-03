@@ -15,6 +15,11 @@ import type {
   UpdateCallReportDto,
   CallReportStatus,
   Customer,
+  CustomerWithStatistics,
+  CreateCustomerDto,
+  UpdateCustomerDto,
+  CustomerStatistics,
+  CustomerType,
   Contact,
   ActivityTypeData,
 } from '@/types';
@@ -303,83 +308,6 @@ export const callReportsApi = {
     const response = await api.delete<{ message: string }>(
       `/call-reports/${callReportId}/photos/${photoId}`
     );
-    return response.data;
-  },
-};
-
-// Customers API
-export const customersApi = {
-  /**
-   * Create a new customer (with optional contact)
-   * Note: code is auto-generated if not provided
-   */
-  create: async (data: {
-    code?: string;
-    name: string;
-    type: 'A' | 'B' | 'C';
-    address?: string;
-    phone?: string;
-    lat?: number;
-    lng?: number;
-    district?: string;
-    province?: string;
-    postalCode?: string;
-    territoryId?: string;
-    monthlyRevenue?: number;
-    requiredVisitsPerMonth?: number;
-    responseTimeHours?: number;
-    contact?: {
-      name: string;
-      position?: string;
-      phone?: string;
-      email?: string;
-    };
-  }): Promise<any> => {
-    const response = await api.post('/customers', data);
-    return response.data;
-  },
-
-  /**
-   * Get all customers
-   */
-  findAll: async (params?: {
-    territoryId?: string;
-    type?: string;
-    search?: string;
-    isActive?: boolean;
-  }): Promise<Customer[]> => {
-    const response = await api.get<Customer[]>('/customers', { params });
-    return response.data;
-  },
-
-  /**
-   * Get a specific customer by ID
-   */
-  findOne: async (id: string): Promise<Customer> => {
-    const response = await api.get<Customer>(`/customers/${id}`);
-    return response.data;
-  },
-
-  /**
-   * Update a customer
-   */
-  update: async (id: string, data: any): Promise<any> => {
-    const response = await api.patch(`/customers/${id}`, data);
-    return response.data;
-  },
-
-  /**
-   * Delete (soft delete) a customer
-   */
-  remove: async (id: string): Promise<void> => {
-    await api.delete(`/customers/${id}`);
-  },
-
-  /**
-   * Get contacts for a specific customer (deprecated - use contactsApi.findByCustomer)
-   */
-  getContacts: async (customerId: string): Promise<Contact[]> => {
-    const response = await api.get<Contact[]>(`/contacts/customer/${customerId}`);
     return response.data;
   },
 };
@@ -787,6 +715,92 @@ export const territoriesApi = {
    */
   getStatistics: async (companyId: string): Promise<any> => {
     const response = await api.get(`/territories/statistics/${companyId}`);
+    return response.data;
+  },
+};
+
+// Customers API
+export const customersApi = {
+  /**
+   * Create a new customer
+   */
+  create: async (data: CreateCustomerDto): Promise<Customer> => {
+    const response = await api.post<Customer>('/customers', data);
+    return response.data;
+  },
+
+  /**
+   * Get all customers with optional filters
+   */
+  findAll: async (params?: {
+    territoryId?: string;
+    type?: CustomerType;
+    search?: string;
+    isActive?: boolean;
+  }): Promise<Customer[]> => {
+    const response = await api.get<Customer[]>('/customers', { params });
+    return response.data;
+  },
+
+  /**
+   * Get my customers based on user role
+   */
+  getMyCustomers: async (params?: {
+    territoryId?: string;
+    type?: CustomerType;
+    search?: string;
+  }): Promise<CustomerWithStatistics[]> => {
+    const response = await api.get<CustomerWithStatistics[]>('/customers/my-customers', {
+      params,
+    });
+    return response.data;
+  },
+
+  /**
+   * Get a specific customer by ID
+   */
+  findOne: async (id: string): Promise<Customer> => {
+    const response = await api.get<Customer>(`/customers/${id}`);
+    return response.data;
+  },
+
+  /**
+   * Get customer statistics
+   */
+  getStatistics: async (
+    id: string,
+    params?: {
+      startDate?: string;
+      endDate?: string;
+    }
+  ): Promise<CustomerStatistics> => {
+    const response = await api.get<CustomerStatistics>(`/customers/${id}/statistics`, {
+      params,
+    });
+    return response.data;
+  },
+
+  /**
+   * Update a customer
+   */
+  update: async (
+    id: string,
+    userId: string,
+    data: UpdateCustomerDto
+  ): Promise<Customer> => {
+    const response = await api.patch<Customer>(`/customers/${id}`, data, {
+      params: { userId },
+    });
+    return response.data;
+  },
+
+  /**
+   * Delete (soft delete) a customer
+   */
+  remove: async (id: string, userId: string): Promise<{ message: string }> => {
+    const response = await api.delete<{ message: string }>(`/customers/${id}`, {
+      params: { userId },
+    });
     return response.data;
   },
 };

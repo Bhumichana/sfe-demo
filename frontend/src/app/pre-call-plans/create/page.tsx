@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
 import { preCallPlansApi, customersApi, contactsApi } from '@/services/api';
 import { CreatePreCallPlanDto, Customer, Contact } from '@/types';
@@ -26,7 +26,11 @@ const MOCK_ACTIVITIES = [
 
 export default function CreatePreCallPlanPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuthStore();
+
+  // Get customerId from URL query parameter
+  const preselectedCustomerId = searchParams.get('customerId');
 
   const [formData, setFormData] = useState<{
     customerId: string;
@@ -36,7 +40,7 @@ export default function CreatePreCallPlanPage() {
     objectives: string;
     plannedActivities: string[];
   }>({
-    customerId: '',
+    customerId: preselectedCustomerId || '',
     contactId: '',
     planDate: '',
     planTime: '',
@@ -283,7 +287,7 @@ export default function CreatePreCallPlanPage() {
               </option>
               {customers.map((customer) => (
                 <option key={customer.id} value={customer.id}>
-                  [Class {customer.customerClass}] {customer.code} - {customer.nameTh}
+                  [{customer.type}] {customer.code} - {customer.name}
                 </option>
               ))}
             </select>

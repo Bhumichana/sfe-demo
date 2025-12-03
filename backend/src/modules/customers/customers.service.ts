@@ -87,12 +87,17 @@ export class CustomersService {
       }
     }
 
+    // Auto-calculate customer grade from monthly revenue
+    const customerType = createDto.monthlyRevenue
+      ? this.calculateCustomerGrade(Number(createDto.monthlyRevenue))
+      : CustomerType.C;
+
     // Create customer with optional contact
     const customer = await this.prisma.customer.create({
       data: {
         code: customerCode,
         name: createDto.name,
-        type: createDto.type,
+        type: customerType, // Use auto-calculated grade
         monthlyRevenue: createDto.monthlyRevenue,
         address: createDto.address,
         lat: createDto.lat,
@@ -278,5 +283,165 @@ export class CustomersService {
     });
 
     return { message: 'Customer deleted successfully' };
+  }
+
+  /**
+   * Calculate customer grade based on monthly revenue
+   */
+  private calculateCustomerGrade(monthlyRevenue: number | null): CustomerType {
+    if (!monthlyRevenue || monthlyRevenue < 100000) {
+      return CustomerType.C;
+    } else if (monthlyRevenue >= 100000 && monthlyRevenue <= 500000) {
+      return CustomerType.B;
+    } else {
+      return CustomerType.A;
+    }
+  }
+
+  /**
+   * Get customer statistics (plans, reports, last visit)
+   */
+  async getCustomerStatistics(
+    customerId: string,
+    startDate?: Date,
+    endDate?: Date,
+  ) {
+    const where: any = { customerId };
+
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) where.createdAt.gte = startDate;
+      if (endDate) where.createdAt.lte = endDate;
+    }
+
+    // Count pre-call plans
+    const totalPlans = await this.prisma.preCallPlan.count({
+      where,
+    });
+
+    // Count call reports
+    const totalReports = await this.prisma.callReport.count({
+      where,
+    });
+
+    // Get last visit (last call report)
+    const lastReport = await this.prisma.callReport.findFirst({
+      where: { customerId },
+      orderBy: { callDate: 'desc' },
+      select: { callDate: true },
+    });
+
+    // Get next planned visit
+    const nextPlan = await this.prisma.preCallPlan.findFirst({
+      where: {
+        customerId,
+        planDate: { gte: new Date() },
+        status: 'APPROVED',
+      },
+      orderBy: { planDate: 'asc' },
+      select: { planDate: true },
+    });
+
+    return {
+      totalPlans,
+      totalReports,
+      lastVisit: lastReport?.callDate || null,
+      nextPlannedVisit: nextPlan?.planDate || null,
+    };
+  }
+
+  /**
+   * Get customers visible to user based on role
+   */
+  async getMyCustomers(
+    userId: string,
+    territoryId?: string,
+    type?: CustomerType,
+    search?: string,
+  ) {
+    // Get user with role and territory
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        role: true,
+        territoryId: true,
+        companyId: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const where: any = {};
+
+    // Role-based visibility
+    if (user.role === 'SR') {
+      // Sales Rep sees only their own customers
+      where.createdBy = userId;
+    } else if (user.role === 'SUP' || user.role === 'SM') {
+      // Supervisor/Sales Manager sees all customers in their territory
+      if (user.territoryId) {
+        where.territoryId = user.territoryId;
+      }
+    } else if (user.role === 'SD' || user.role === 'CEO') {
+      // Sales Director/CEO sees all customers in company
+      // No additional filter needed
+    }
+
+    // Apply additional filters
+    if (territoryId) where.territoryId = territoryId;
+    if (type) where.type = type;
+    where.isActive = true; // Only active customers
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { code: { contains: search, mode: 'insensitive' } },
+        { address: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    // Get customers with basic statistics
+    const customers = await this.prisma.customer.findMany({
+      where,
+      include: {
+        territory: { select: { id: true, nameTh: true, code: true } },
+        contacts: {
+          where: { isPrimary: true },
+          select: { id: true, name: true, position: true, phone: true },
+        },
+        _count: {
+          select: {
+            preCallPlans: true,
+            callReports: true,
+          },
+        },
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    // Get last visit for each customer
+    const customersWithStats = await Promise.all(
+      customers.map(async (customer) => {
+        const lastReport = await this.prisma.callReport.findFirst({
+          where: { customerId: customer.id },
+          orderBy: { callDate: 'desc' },
+          select: { callDate: true },
+        });
+
+        return {
+          ...customer,
+          statistics: {
+            totalPlans: customer._count.preCallPlans,
+            totalReports: customer._count.callReports,
+            lastVisit: lastReport?.callDate || null,
+          },
+        };
+      }),
+    );
+
+    return customersWithStats;
   }
 }

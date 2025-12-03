@@ -52,6 +52,11 @@ export class CreateUserDto {
   @IsString()
   territoryId?: string;
 
+  @ApiPropertyOptional({ example: 'uuid-of-team' })
+  @IsOptional()
+  @IsString()
+  teamId?: string;
+
   @ApiProperty({ example: 'password123', minLength: 6 })
   @IsString()
   @MinLength(6)

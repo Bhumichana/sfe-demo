@@ -52,28 +52,114 @@ export interface AuthResponse {
   accessToken: string;
 }
 
-// Customer ABC Classification
-export type CustomerClass = 'A' | 'B' | 'C';
+// Customer Type Classification
+export type CustomerType = 'A' | 'B' | 'C';
 
 export interface Customer {
   id: string;
   code: string;
-  nameTh: string;
-  nameEn: string;
-  customerClass: CustomerClass;
-  annualRevenue: number;
-  territoryId: string;
-  territory?: Territory;
+  name: string;
+  type: CustomerType;
+  monthlyRevenue?: number;
+  address?: string;
+  lat?: number;
+  lng?: number;
+  district?: string;
+  province?: string;
+  postalCode?: string;
+  phone?: string;
+  territoryId?: string;
+  requiredVisitsPerMonth?: number;
+  responseTimeHours?: number;
+  isActive: boolean;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+
+  // Relations
+  territory?: {
+    id: string;
+    code: string;
+    nameTh: string;
+  };
+  creator?: {
+    id: string;
+    fullName: string;
+  };
+  contacts?: Contact[];
+}
+
+// Customer with Statistics (from getMyCustomers)
+export interface CustomerWithStatistics extends Customer {
+  statistics: {
+    totalPlans: number;
+    totalReports: number;
+    lastVisit: string | null;
+  };
+}
+
+// Customer DTOs
+export interface CreateCustomerDto {
+  code?: string; // Auto-generated if not provided
+  name: string;
+  monthlyRevenue?: number;
+  address?: string;
+  lat?: number;
+  lng?: number;
+  district?: string;
+  province?: string;
+  postalCode?: string;
+  phone?: string;
+  territoryId?: string;
+  requiredVisitsPerMonth?: number;
+  responseTimeHours?: number;
+  createdBy?: string; // Set by backend
+  // Quick Create Contact (optional)
+  contact?: {
+    name: string;
+    position?: string;
+    phone?: string;
+    email?: string;
+  };
+}
+
+export interface UpdateCustomerDto {
+  code?: string;
+  name?: string;
+  type?: CustomerType;
+  monthlyRevenue?: number;
+  address?: string;
+  lat?: number;
+  lng?: number;
+  district?: string;
+  province?: string;
+  postalCode?: string;
+  phone?: string;
+  territoryId?: string;
+  requiredVisitsPerMonth?: number;
+  responseTimeHours?: number;
+}
+
+// Customer Statistics
+export interface CustomerStatistics {
+  totalPlans: number;
+  totalReports: number;
+  lastVisit: string | null;
+  nextPlannedVisit: string | null;
 }
 
 // Contact interface
 export interface Contact {
   id: string;
+  customerId?: string;
   name: string;
   position?: string;
   phone?: string;
   email?: string;
+  lineId?: string;
   isPrimary?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Pre-Call Plan Status

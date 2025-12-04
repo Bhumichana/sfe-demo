@@ -178,22 +178,18 @@ export default function EditCustomerPage() {
             {/* Territory */}
             <div>
               <label className="block text-sm font-medium text-foreground mb-1.5">เขตการขาย</label>
-              {loadingTerritories ? (
-                <div className="text-sm text-muted-foreground">กำลังโหลด...</div>
-              ) : (
-                <select
-                  value={formData.territoryId}
-                  onChange={(e) => setFormData({ ...formData, territoryId: e.target.value })}
-                  className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
-                >
-                  <option value="">-- ไม่ระบุ --</option>
-                  {territories.map((territory) => (
-                    <option key={territory.id} value={territory.id}>
-                      {territory.nameTh} ({territory.code})
-                    </option>
-                  ))}
-                </select>
-              )}
+              <select
+                value={formData.territoryId}
+                onChange={(e) => setFormData({ ...formData, territoryId: e.target.value })}
+                className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="">-- ไม่ระบุ --</option>
+                {territories.map((territory) => (
+                  <option key={territory.id} value={territory.id}>
+                    {territory.nameTh} ({territory.code})
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>

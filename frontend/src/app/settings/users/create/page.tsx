@@ -99,6 +99,20 @@ export default function UserCreatePage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
+
+    // Auto-select manager when team is selected
+    if (name === 'teamId' && value) {
+      const selectedTeam = teams.find((team) => team.id === value);
+      if (selectedTeam?.leader) {
+        setFormData((prev) => ({
+          ...prev,
+          teamId: value,
+          managerId: selectedTeam.leader!.id, // Auto-set manager to team leader
+        }));
+        return;
+      }
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
@@ -316,12 +330,15 @@ export default function UserCreatePage() {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-foreground mb-2">ผู้จัดการ</label>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  ผู้จัดการ <span className="text-xs text-gray-500">(เลือกอัตโนมัติจากทีม)</span>
+                </label>
                 <select
                   name="managerId"
                   value={formData.managerId}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  disabled
+                  className="w-full px-4 py-2 border border-border rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed opacity-75"
                 >
                   <option value="">ไม่มีผู้จัดการ</option>
                   {potentialManagers.map((manager) => (

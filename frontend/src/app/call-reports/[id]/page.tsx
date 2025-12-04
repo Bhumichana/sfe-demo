@@ -239,13 +239,11 @@ export default function CallReportDetailPage() {
               )}
             </h3>
             <DynamicLocationMap
-              currentLocation={{
-                lat: report.checkInLat,
-                lng: report.checkInLng,
-              }}
-              customerLocation={undefined}
+              lat={report.checkInLat}
+              lng={report.checkInLng}
               height="450px"
-              showDistanceCircle={false}
+              readOnly={true}
+              showCoordinates={true}
             />
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-3 bg-green-50 border border-green-200 rounded-lg">

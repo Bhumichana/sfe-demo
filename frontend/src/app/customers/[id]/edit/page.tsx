@@ -98,7 +98,7 @@ export default function EditCustomerPage() {
         lng: formData.lng,
       };
 
-      await customersApi.update(customerId, customerData);
+      await customersApi.update(customerId, user!.id, customerData);
       alert('แก้ไขข้อมูลลูกค้าสำเร็จ');
       router.push(`/customers/${customerId}`);
     } catch (error: any) {

@@ -1,31 +1,15 @@
 'use client';
 
-import { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Circle, Polyline, useMap } from 'react-leaflet';
+import { useEffect, useState } from 'react';
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Fix for default marker icons in react-leaflet
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
-
-// Custom icons
-const currentLocationIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
-
-const customerLocationIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+// Fix for default marker icon issue with Webpack
+const icon = L.icon({
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
@@ -33,159 +17,121 @@ const customerLocationIcon = new L.Icon({
 });
 
 interface LocationMapProps {
-  currentLocation: {
-    lat: number;
-    lng: number;
-  };
-  customerLocation?: {
-    lat: number | string; // Support Prisma Decimal (string)
-    lng: number | string; // Support Prisma Decimal (string)
-    name: string;
-    address?: string;
-  };
-  distance?: number; // in meters
-  maxDistance?: number; // threshold in meters
+  lat?: number;
+  lng?: number;
+  zoom?: number;
+  onLocationSelect?: (lat: number, lng: number) => void;
+  readOnly?: boolean;
   height?: string;
-  showDistanceCircle?: boolean;
+  showCoordinates?: boolean;
 }
 
-// Component to automatically adjust map bounds
-function MapBounds({
-  currentLocation,
-  customerLocation
-}: {
-  currentLocation: { lat: number; lng: number };
-  customerLocation?: { lat: number | string; lng: number | string }
-}) {
+// Component to handle map click events
+function MapClickHandler({ onLocationSelect }: { onLocationSelect?: (lat: number, lng: number) => void }) {
+  useMapEvents({
+    click(e) {
+      if (onLocationSelect) {
+        onLocationSelect(e.latlng.lat, e.latlng.lng);
+      }
+    },
+  });
+  return null;
+}
+
+// Component to update map view when props change
+function MapUpdater({ lat, lng, zoom }: { lat: number; lng: number; zoom: number }) {
   const map = useMap();
 
   useEffect(() => {
-    if (customerLocation) {
-      // Convert to numbers (handle Prisma Decimal)
-      const custLat = Number(customerLocation.lat);
-      const custLng = Number(customerLocation.lng);
-
-      // Fit bounds to show both markers
-      const bounds = L.latLngBounds(
-        [currentLocation.lat, currentLocation.lng],
-        [custLat, custLng]
-      );
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 17 });
-    } else {
-      // Center on current location
-      map.setView([currentLocation.lat, currentLocation.lng], 16);
-    }
-  }, [map, currentLocation, customerLocation]);
+    map.setView([lat, lng], zoom);
+  }, [lat, lng, zoom, map]);
 
   return null;
 }
 
 export default function LocationMap({
-  currentLocation,
-  customerLocation,
-  distance,
-  maxDistance = 10,
+  lat = 13.7563,
+  lng = 100.5018,
+  zoom = 13,
+  onLocationSelect,
+  readOnly = false,
   height = '400px',
-  showDistanceCircle = true,
+  showCoordinates = true,
 }: LocationMapProps) {
-  // Convert all locations to numbers (handle Prisma Decimal)
-  const currentLat = Number(currentLocation.lat);
-  const currentLng = Number(currentLocation.lng);
-  const customerLat = customerLocation ? Number(customerLocation.lat) : null;
-  const customerLng = customerLocation ? Number(customerLocation.lng) : null;
+  const [position, setPosition] = useState<[number, number]>([lat, lng]);
+  const [isMounted, setIsMounted] = useState(false);
 
-  // Default center (Bangkok)
-  const defaultCenter: [number, number] = [13.7563, 100.5018];
-  const center: [number, number] = [currentLat, currentLng];
+  // Handle SSR - only render map on client side
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
-  const isWithinRange = distance !== undefined && distance <= maxDistance;
+  useEffect(() => {
+    setPosition([lat, lng]);
+  }, [lat, lng]);
+
+  const handleLocationSelect = (newLat: number, newLng: number) => {
+    setPosition([newLat, newLng]);
+    if (onLocationSelect) {
+      onLocationSelect(newLat, newLng);
+    }
+  };
+
+  const handleMarkerDrag = (e: L.DragEndEvent) => {
+    const marker = e.target;
+    const newPosition = marker.getLatLng();
+    handleLocationSelect(newPosition.lat, newPosition.lng);
+  };
+
+  // Don't render map on server side
+  if (!isMounted) {
+    return (
+      <div
+        style={{ height }}
+        className="w-full bg-gray-100 rounded-lg flex items-center justify-center"
+      >
+        <p className="text-gray-500">กำลังโหลดแผนที่...</p>
+      </div>
+    );
+  }
 
   return (
-    <div style={{ height, width: '100%', borderRadius: '12px', overflow: 'hidden' }}>
-      <MapContainer
-        center={center}
-        zoom={16}
-        scrollWheelZoom={true}
-        style={{ height: '100%', width: '100%' }}
-      >
-        {/* OpenStreetMap tiles */}
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+    <div className="w-full">
+      <div style={{ height }} className="w-full rounded-lg overflow-hidden border border-border shadow-sm">
+        <MapContainer
+          center={position}
+          zoom={zoom}
+          style={{ height: '100%', width: '100%' }}
+          scrollWheelZoom={true}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
 
-        {/* Current location marker */}
-        <Marker position={center} icon={currentLocationIcon}>
-          <Popup>
-            <div className="text-sm">
-              <strong className="text-blue-600">Your Location</strong>
-              <div className="text-xs text-gray-600 mt-1">
-                {currentLat.toFixed(6)}, {currentLng.toFixed(6)}
-              </div>
-            </div>
-          </Popup>
-        </Marker>
+          <Marker
+            position={position}
+            icon={icon}
+            draggable={!readOnly}
+            eventHandlers={{
+              dragend: handleMarkerDrag,
+            }}
+          />
 
-        {/* Customer location marker and distance indicators */}
-        {customerLocation && customerLat !== null && customerLng !== null && (
-          <>
-            <Marker
-              position={[customerLat, customerLng]}
-              icon={customerLocationIcon}
-            >
-              <Popup>
-                <div className="text-sm">
-                  <strong className="text-red-600">{customerLocation.name}</strong>
-                  {customerLocation.address && (
-                    <div className="text-xs text-gray-600 mt-1">{customerLocation.address}</div>
-                  )}
-                  <div className="text-xs text-gray-600 mt-1">
-                    {customerLat.toFixed(6)}, {customerLng.toFixed(6)}
-                  </div>
-                  {distance !== undefined && (
-                    <div className={`text-xs font-semibold mt-2 ${isWithinRange ? 'text-green-600' : 'text-red-600'}`}>
-                      Distance: {Math.round(distance)}m {isWithinRange ? '✅' : '❌'}
-                    </div>
-                  )}
-                </div>
-              </Popup>
-            </Marker>
+          {!readOnly && <MapClickHandler onLocationSelect={handleLocationSelect} />}
 
-            {/* Distance threshold circle around customer */}
-            {showDistanceCircle && (
-              <Circle
-                center={[customerLat, customerLng]}
-                radius={maxDistance}
-                pathOptions={{
-                  color: isWithinRange ? '#10B981' : '#EF4444',
-                  fillColor: isWithinRange ? '#10B981' : '#EF4444',
-                  fillOpacity: 0.1,
-                  weight: 2,
-                }}
-              />
-            )}
+          <MapUpdater lat={position[0]} lng={position[1]} zoom={zoom} />
+        </MapContainer>
+      </div>
 
-            {/* Line connecting the two points */}
-            <Polyline
-              positions={[
-                [currentLat, currentLng],
-                [customerLat, customerLng],
-              ]}
-              pathOptions={{
-                color: isWithinRange ? '#10B981' : '#EF4444',
-                weight: 3,
-                dashArray: '5, 10',
-              }}
-            />
-          </>
-        )}
-
-        {/* Auto-adjust map bounds */}
-        <MapBounds
-          currentLocation={{ lat: currentLat, lng: currentLng }}
-          customerLocation={customerLocation}
-        />
-      </MapContainer>
+      {showCoordinates && (
+        <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-border">
+          <p className="text-sm text-gray-600">
+            <span className="font-medium">พิกัด:</span>{' '}
+            {position[0].toFixed(6)}, {position[1].toFixed(6)}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

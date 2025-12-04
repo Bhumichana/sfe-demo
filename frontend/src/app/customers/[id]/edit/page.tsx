@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
 import { customersApi, territoriesApi } from '@/services/api';
 import { CreateCustomerDto, Territory } from '@/types';
@@ -12,13 +12,14 @@ const LocationPicker = dynamic(() => import('@/components/maps/LocationPicker'),
   ssr: false,
 });
 
-export default function CreateCustomerPage() {
+export default function EditCustomerPage() {
   const router = useRouter();
+  const params = useParams();
+  const customerId = params?.id as string;
   const { user, isAuthenticated } = useAuthStore();
   const [loading, setLoading] = useState(false);
+  const [loadingData, setLoadingData] = useState(true);
   const [territories, setTerritories] = useState<Territory[]>([]);
-  const [loadingTerritories, setLoadingTerritories] = useState(true);
-  const [showQuickContact, setShowQuickContact] = useState(false);
 
   const [formData, setFormData] = useState<CreateCustomerDto>({
     name: '',
@@ -36,31 +37,44 @@ export default function CreateCustomerPage() {
     lng: undefined,
   });
 
-  const [contactData, setContactData] = useState({
-    name: '',
-    position: '',
-    phone: '',
-    email: '',
-  });
-
   useEffect(() => {
     if (!isAuthenticated) {
       router.push('/login');
       return;
     }
-    loadTerritories();
-  }, [isAuthenticated]);
+    loadData();
+  }, [isAuthenticated, customerId]);
 
-  const loadTerritories = async () => {
+  const loadData = async () => {
     try {
-      setLoadingTerritories(true);
-      const data = await territoriesApi.findAll();
-      setTerritories(data);
+      setLoadingData(true);
+      const [customerData, territoriesData] = await Promise.all([
+        customersApi.findOne(customerId),
+        territoriesApi.findAll(),
+      ]);
+
+      setTerritories(territoriesData);
+      setFormData({
+        name: customerData.name || '',
+        code: customerData.code || '',
+        monthlyRevenue: customerData.monthlyRevenue,
+        address: customerData.address || '',
+        district: customerData.district || '',
+        province: customerData.province || '',
+        postalCode: customerData.postalCode || '',
+        phone: customerData.phone || '',
+        territoryId: customerData.territory?.id || '',
+        requiredVisitsPerMonth: customerData.requiredVisitsPerMonth,
+        responseTimeHours: customerData.responseTimeHours,
+        lat: customerData.lat,
+        lng: customerData.lng,
+      });
     } catch (error) {
-      console.error('Failed to load territories:', error);
-      alert('ไม่สามารถโหลดข้อมูลเขตการขายได้');
+      console.error('Failed to load customer data:', error);
+      alert('ไม่สามารถโหลดข้อมูลลูกค้าได้');
+      router.push('/customers');
     } finally {
-      setLoadingTerritories(false);
+      setLoadingData(false);
     }
   };
 
@@ -82,30 +96,20 @@ export default function CreateCustomerPage() {
         territoryId: formData.territoryId || undefined,
         lat: formData.lat,
         lng: formData.lng,
-        // Add quick contact if provided
-        contact:
-          showQuickContact && contactData.name.trim()
-            ? {
-                name: contactData.name.trim(),
-                position: contactData.position?.trim() || undefined,
-                phone: contactData.phone?.trim() || undefined,
-                email: contactData.email?.trim() || undefined,
-              }
-            : undefined,
       };
 
-      const customer = await customersApi.create(customerData);
-      alert('เพิ่มลูกค้าสำเร็จ');
-      router.push(`/customers/${customer.id}`);
+      await customersApi.update(customerId, customerData);
+      alert('แก้ไขข้อมูลลูกค้าสำเร็จ');
+      router.push(`/customers/${customerId}`);
     } catch (error: any) {
-      console.error('Failed to create customer:', error);
-      alert(error.response?.data?.message || 'ไม่สามารถเพิ่มลูกค้าได้ กรุณาลองใหม่อีกครั้ง');
+      console.error('Failed to update customer:', error);
+      alert(error.response?.data?.message || 'ไม่สามารถแก้ไขข้อมูลลูกค้าได้ กรุณาลองใหม่อีกครั้ง');
     } finally {
       setLoading(false);
     }
   };
 
-  if (!isAuthenticated || !user) {
+  if (!isAuthenticated || !user || loadingData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -114,7 +118,7 @@ export default function CreateCustomerPage() {
   }
 
   return (
-    <MainLayout title="เพิ่มลูกค้าใหม่" subtitle="Create Customer" showBackButton={true}>
+    <MainLayout title="แก้ไขข้อมูลลูกค้า" subtitle="Edit Customer" showBackButton={true}>
       <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-6">
         {/* Basic Information */}
         <div className="bg-white rounded-xl shadow-sm border border-border p-6">
@@ -317,74 +321,11 @@ export default function CreateCustomerPage() {
           </div>
         </div>
 
-        {/* Quick Create Contact */}
-        <div className="bg-white rounded-xl shadow-sm border border-border p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-foreground">เพิ่มผู้ติดต่อ (ถ้ามี)</h2>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={showQuickContact}
-                onChange={(e) => setShowQuickContact(e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-            </label>
-          </div>
-
-          {showQuickContact && (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">ชื่อผู้ติดต่อ</label>
-                <input
-                  type="text"
-                  value={contactData.name}
-                  onChange={(e) => setContactData({ ...contactData, name: e.target.value })}
-                  className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  placeholder="ชื่อ-นามสกุล"
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">ตำแหน่ง</label>
-                  <input
-                    type="text"
-                    value={contactData.position}
-                    onChange={(e) => setContactData({ ...contactData, position: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    placeholder="เช่น ผู้จัดการ"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">เบอร์โทร</label>
-                  <input
-                    type="tel"
-                    value={contactData.phone}
-                    onChange={(e) => setContactData({ ...contactData, phone: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    placeholder="0812345678"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">อีเมล</label>
-                <input
-                  type="email"
-                  value={contactData.email}
-                  onChange={(e) => setContactData({ ...contactData, email: e.target.value })}
-                  className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  placeholder="example@email.com"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-
         {/* Action Buttons */}
         <div className="flex gap-3">
           <button
             type="button"
-            onClick={() => router.back()}
+            onClick={() => router.push(`/customers/${customerId}`)}
             className="flex-1 px-6 py-3 border border-border text-foreground rounded-lg hover:bg-gray-50 transition-colors font-medium"
             disabled={loading}
           >

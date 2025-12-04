@@ -159,9 +159,10 @@ async function main() {
     },
   });
 
-  // Sales Rep 1 (SR)
+  // Sales Rep 1 (SR) - with fixed ID for development/testing
   const sr1 = await prisma.user.create({
     data: {
+      id: '5b1a4aaf-f81a-4612-83f1-2b6fd1e7c849', // Fixed ID for development
       username: 'sales1',
       email: 'sales1@demo.com',
       passwordHash: demoPassword,

@@ -8,6 +8,19 @@ import { Customer, CustomerStatistics, CustomerType } from '@/types';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import MainLayout from '@/components/layouts/MainLayout';
+import dynamic from 'next/dynamic';
+import { useCurrentLocation } from '@/hooks/useCurrentLocation';
+import { calculateDistance, formatDistance, openInGoogleMaps } from '@/utils/geoUtils';
+
+// Dynamically import LocationMap to avoid SSR issues
+const LocationMap = dynamic(() => import('@/components/maps/LocationMap'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[300px] bg-gray-100 rounded-lg flex items-center justify-center">
+      <p className="text-gray-500">กำลังโหลดแผนที่...</p>
+    </div>
+  ),
+});
 
 const TYPE_COLORS: Record<CustomerType, string> = {
   A: 'bg-purple-100 text-purple-700 border-purple-300',
@@ -29,6 +42,9 @@ export default function CustomerDetailPage() {
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [statistics, setStatistics] = useState<CustomerStatistics | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // GPS current location hook
+  const { location: currentLocation, loading: locationLoading, getCurrentLocation } = useCurrentLocation();
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -339,6 +355,148 @@ export default function CustomerDetailPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* GPS Location */}
+        {customer.lat && customer.lng && (
+          <div className="bg-white rounded-xl shadow-sm border border-border p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-foreground">ตำแหน่งที่ตั้ง</h2>
+              <button
+                onClick={() => openInGoogleMaps(Number(customer.lat), Number(customer.lng), customer.name)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+                เปิดใน Google Maps
+              </button>
+            </div>
+
+            {/* Distance from current location */}
+            {currentLocation && (
+              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="flex-shrink-0">
+                    <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                      />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-blue-900">ระยะห่างจากตำแหน่งปัจจุบัน</p>
+                    <p className="text-2xl font-bold text-blue-700">
+                      {formatDistance(
+                        calculateDistance(
+                          currentLocation.lat,
+                          currentLocation.lng,
+                          Number(customer.lat),
+                          Number(customer.lng)
+                        )
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Get current location button */}
+            {!currentLocation && (
+              <div className="mb-4">
+                <button
+                  onClick={getCurrentLocation}
+                  disabled={locationLoading}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {locationLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                      กำลังระบุตำแหน่ง...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                      </svg>
+                      คำนวณระยะห่างจากตำแหน่งปัจจุบัน
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {/* Map */}
+            <div className="mb-4">
+              <LocationMap
+                lat={Number(customer.lat)}
+                lng={Number(customer.lng)}
+                zoom={15}
+                readOnly={true}
+                height="300px"
+                showCoordinates={true}
+              />
+            </div>
+
+            {/* Coordinates */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div className="p-3 bg-gray-50 rounded-lg border border-border">
+                <label className="block text-xs font-medium text-muted-foreground mb-1">ละติจูด (Latitude)</label>
+                <p className="text-sm font-mono text-foreground">{Number(customer.lat).toFixed(6)}</p>
+              </div>
+              <div className="p-3 bg-gray-50 rounded-lg border border-border">
+                <label className="block text-xs font-medium text-muted-foreground mb-1">ลองจิจูด (Longitude)</label>
+                <p className="text-sm font-mono text-foreground">{Number(customer.lng).toFixed(6)}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* No GPS Location */}
+        {(!customer.lat || !customer.lng) && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+            <div className="flex items-start gap-3">
+              <svg className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+              <div>
+                <h3 className="text-sm font-semibold text-yellow-900 mb-1">ยังไม่มีข้อมูลตำแหน่ง GPS</h3>
+                <p className="text-sm text-yellow-700">
+                  ลูกค้ารายนี้ยังไม่มีพิกัด GPS ที่บันทึกไว้ คุณสามารถเพิ่มข้อมูลตำแหน่งได้ในภายหลัง
+                </p>
+              </div>
             </div>
           </div>
         )}

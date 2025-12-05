@@ -7,6 +7,7 @@ import { callReportsApi, customersApi, contactsApi, activityTypesApi, preCallPla
 import { Customer, Contact, ActivityTypeData, ActivityType, CreateCallReportDto, PreCallPlan } from '@/types';
 import { format } from 'date-fns';
 import MainLayout from '@/components/layouts/MainLayout';
+import { calculateDistance, formatDistance, getCheckInRadius, isWithinRadius } from '@/utils/geoUtils';
 
 type PhotoCategory = 'product' | 'pop_posm' | 'customer' | 'activity' | 'other';
 
@@ -268,12 +269,68 @@ function CreateCallReportPageContent() {
     try {
       setSubmitting(true);
 
+      // Get customer location for distance validation
+      const selectedCustomer = customers.find(c => c.id === formData.customerId);
+
+      // Get current GPS location for check-in
+      setGettingLocation(true);
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0,
+        });
+      });
+      setGettingLocation(false);
+
+      const currentLat = position.coords.latitude;
+      const currentLng = position.coords.longitude;
+      const checkInTime = new Date().toISOString();
+
+      // Check distance if customer has GPS location
+      if (selectedCustomer && selectedCustomer.lat && selectedCustomer.lng) {
+        const distance = calculateDistance(
+          currentLat,
+          currentLng,
+          Number(selectedCustomer.lat),
+          Number(selectedCustomer.lng)
+        );
+        const allowedRadius = getCheckInRadius(selectedCustomer.type);
+        const withinRadius = isWithinRadius(
+          currentLat,
+          currentLng,
+          Number(selectedCustomer.lat),
+          Number(selectedCustomer.lng),
+          allowedRadius
+        );
+
+        // Warning if outside radius
+        if (!withinRadius) {
+          const proceed = confirm(
+            `⚠️ คำเตือน: คุณอยู่ห่างจากลูกค้า ${formatDistance(distance)}\n\n` +
+            `ระยะที่อนุญาตสำหรับลูกค้า${selectedCustomer.type}: ${formatDistance(allowedRadius)}\n\n` +
+            `คุณต้องการดำเนินการต่อหรือไม่?`
+          );
+
+          if (!proceed) {
+            setSubmitting(false);
+            return;
+          }
+        } else {
+          // Show success message if within radius
+          alert(`✅ ระบุตำแหน่งสำเร็จ\n\nคุณอยู่ห่างจากลูกค้า: ${formatDistance(distance)}`);
+        }
+      }
+
       const dto: CreateCallReportDto = {
         preCallPlanId: selectedPlanId || undefined,
         srId: user.id,
         customerId: formData.customerId,
         contactId: formData.contactId,
         callDate: formData.callDate,
+        checkInTime: checkInTime,
+        checkInLat: currentLat,
+        checkInLng: currentLng,
         activityType: formData.callActivityType,
         activitiesDone: formData.activitiesDone,
         customerResponse: formData.customerResponse || undefined,
@@ -294,9 +351,23 @@ function CreateCallReportPageContent() {
       router.push('/call-reports');
     } catch (error: any) {
       console.error('Failed to submit:', error);
-      alert(error.response?.data?.message || 'ไม่สามารถส่งรายงานได้ กรุณาลองใหม่อีกครั้ง');
+      setGettingLocation(false);
+
+      // Handle geolocation errors
+      if (error.code) {
+        if (error.code === 1) {
+          alert('❌ ไม่ได้รับอนุญาตให้เข้าถึงตำแหน่ง\n\nกรุณาเปิดการอนุญาตใน Location Services และลองอีกครั้ง');
+        } else if (error.code === 2) {
+          alert('❌ ไม่สามารถระบุตำแหน่งได้\n\nกรุณาตรวจสอบการเชื่อมต่อ GPS และลองอีกครั้ง');
+        } else if (error.code === 3) {
+          alert('❌ หมดเวลาในการค้นหาตำแหน่ง\n\nกรุณาลองอีกครั้ง');
+        }
+      } else {
+        alert(error.response?.data?.message || 'ไม่สามารถส่งรายงานได้ กรุณาลองใหม่อีกครั้ง');
+      }
     } finally {
       setSubmitting(false);
+      setGettingLocation(false);
     }
   };
 

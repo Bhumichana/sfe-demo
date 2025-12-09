@@ -239,8 +239,8 @@ export default function CallReportDetailPage() {
               )}
             </h3>
             <DynamicLocationMap
-              lat={report.checkInLat}
-              lng={report.checkInLng}
+              lat={Number(report.checkInLat)}
+              lng={Number(report.checkInLng)}
               height="450px"
               readOnly={true}
               showCoordinates={true}

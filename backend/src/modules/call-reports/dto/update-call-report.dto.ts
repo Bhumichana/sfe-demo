@@ -3,6 +3,36 @@ import { ApiProperty } from '@nestjs/swagger';
 import { CallActivityType } from '@prisma/client';
 
 export class UpdateCallReportDto {
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  checkInTime?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  checkInLat?: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  checkInLng?: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  checkOutTime?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  checkOutLat?: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  checkOutLng?: number;
+
   @ApiProperty({ required: false, enum: CallActivityType })
   @IsOptional()
   @IsEnum(CallActivityType)

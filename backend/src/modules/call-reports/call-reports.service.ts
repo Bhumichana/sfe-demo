@@ -42,7 +42,7 @@ export class CallReportsService {
       }
     }
 
-    // GPS Validation (10 meters strict)
+    // GPS Validation (50 meters)
     if (createDto.checkInLat && createDto.checkInLng && customer.lat && customer.lng) {
       const distance = this.calculateDistance(
         createDto.checkInLat,
@@ -51,9 +51,9 @@ export class CallReportsService {
         Number(customer.lng),
       );
 
-      if (distance > 10) {
+      if (distance > 50) {
         throw new BadRequestException(
-          `You are ${Math.round(distance)}m away from customer location. Maximum allowed is 10m.`,
+          `You are ${Math.round(distance)}m away from customer location. Maximum allowed is 50m.`,
         );
       }
     }
@@ -320,7 +320,7 @@ export class CallReportsService {
     if (report.srId !== userId)
       throw new ForbiddenException('You can only check-out your own reports');
 
-    // GPS Validation (10 meters strict)
+    // GPS Validation (50 meters)
     if (report.customer.lat && report.customer.lng) {
       const distance = this.calculateDistance(
         checkOutDto.checkOutLat,
@@ -329,9 +329,9 @@ export class CallReportsService {
         Number(report.customer.lng),
       );
 
-      if (distance > 10) {
+      if (distance > 50) {
         throw new BadRequestException(
-          `You are ${Math.round(distance)}m away from customer location. Maximum allowed is 10m.`,
+          `You are ${Math.round(distance)}m away from customer location. Maximum allowed is 50m.`,
         );
       }
     }

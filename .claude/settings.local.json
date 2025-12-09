@@ -44,7 +44,20 @@
       "Bash(git remote add:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(timeout /t 10 /nobreak)",
+      "Bash(timeout 5 bash:*)",
+      "Bash(timeout 10 bash:*)",
+      "Bash(git checkout:*)",
+      "Bash(node test-notification-preferences.js:*)",
+      "Bash(del test-notification-preferences.js)",
+      "Bash(node test-customer.js:*)",
+      "Bash(node get-user.js:*)",
+      "Bash(del test-customer.js get-user.js)",
+      "Bash(node:*)",
+      "Bash(timeout 30 bash:*)",
+      "Bash(npm outdated:*)",
+      "Bash(del check-customer-gps.js)"
     ],
     "deny": [],
     "ask": []

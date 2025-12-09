@@ -204,6 +204,12 @@ export class CallReportsService {
     return this.prisma.callReport.update({
       where: { id },
       data: {
+        ...(updateDto.checkInTime !== undefined && { checkInTime: updateDto.checkInTime }),
+        ...(updateDto.checkInLat !== undefined && { checkInLat: updateDto.checkInLat }),
+        ...(updateDto.checkInLng !== undefined && { checkInLng: updateDto.checkInLng }),
+        ...(updateDto.checkOutTime !== undefined && { checkOutTime: updateDto.checkOutTime }),
+        ...(updateDto.checkOutLat !== undefined && { checkOutLat: updateDto.checkOutLat }),
+        ...(updateDto.checkOutLng !== undefined && { checkOutLng: updateDto.checkOutLng }),
         ...(updateDto.callActivityType && { callActivityType: updateDto.callActivityType }),
         ...(updateDto.activitiesDone !== undefined && {
           activitiesDone: updateDto.activitiesDone,

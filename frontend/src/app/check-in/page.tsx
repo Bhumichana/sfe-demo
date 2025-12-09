@@ -92,6 +92,7 @@ export default function CheckInPage() {
 
       const allPlans = await preCallPlansApi.findByUser(user.id, 'APPROVED');
 
+      // Filter today's approved plans
       const todayPlans = allPlans.filter((plan) => {
         const planDate = new Date(plan.planDate);
         return planDate >= today && planDate <= endToday;
@@ -224,13 +225,24 @@ export default function CheckInPage() {
               <svg className="w-16 h-16 text-muted-foreground mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
-              <p className="text-muted-foreground">No approved plans for today</p>
-              <button
-                onClick={() => router.push('/pre-call-plans/create')}
-                className="mt-4 text-sm text-primary hover:underline"
-              >
-                Create a new plan
-              </button>
+              <p className="text-muted-foreground font-semibold mb-2">ไม่มีแผนที่พร้อม Check-in</p>
+              <p className="text-sm text-muted-foreground mb-4">
+                คุณอาจเช็คอินแล้วทั้งหมด หรือยังไม่มีแผนที่อนุมัติสำหรับวันนี้
+              </p>
+              <div className="flex flex-col gap-2 max-w-xs mx-auto">
+                <button
+                  onClick={() => router.push('/calendar')}
+                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
+                >
+                  📅 ดูปฏิทินแผน
+                </button>
+                <button
+                  onClick={() => router.push('/pre-call-plans/create')}
+                  className="px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors font-medium"
+                >
+                  + สร้างแผนใหม่
+                </button>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">
@@ -261,19 +273,24 @@ export default function CheckInPage() {
                   <button
                     onClick={() => handleCheckIn(plan)}
                     disabled={!currentLocation || checkingIn}
-                    className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${
+                    className={`w-full py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
                       currentLocation && !checkingIn
-                        ? 'bg-success text-white hover:bg-success/90'
+                        ? 'bg-success text-white hover:bg-success/90 shadow-md'
                         : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                     }`}
                   >
                     {checkingIn ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
-                        Checking in...
-                      </span>
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+                        <span>กำลังเช็คอิน...</span>
+                      </>
                     ) : (
-                      '🚀 Check-in'
+                      <>
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>ยืนยันเช็คอิน</span>
+                      </>
                     )}
                   </button>
                 </div>

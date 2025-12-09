@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
-import path from 'path';
+import { put } from '@vercel/blob';
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,20 +19,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Convert File to Buffer
-    const bytes = await photo.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
     // Generate unique filename
     const timestamp = Date.now();
     const filename = `${userId}_${timestamp}_${category}.jpg`;
 
-    // Save to public/uploads directory
-    const filepath = path.join(process.cwd(), 'public/uploads', filename);
-    await writeFile(filepath, buffer);
+    // Upload to Vercel Blob
+    const blob = await put(filename, photo, {
+      access: 'public',
+    });
 
-    // Return the URL
-    const url = `/uploads/${filename}`;
+    // Return the Blob URL
+    const url = blob.url;
 
     const photoData = {
       url,
@@ -41,7 +37,7 @@ export async function POST(request: NextRequest) {
       category,
       location: lat && lng ? { lat: parseFloat(lat), lng: parseFloat(lng) } : null,
       timestamp: new Date().toISOString(),
-      sizeBytes: buffer.length,
+      sizeBytes: photo.size,
       callReportId: callReportId || null,
     };
 
@@ -58,7 +54,7 @@ export async function POST(request: NextRequest) {
           lat: lat ? parseFloat(lat) : null,
           lng: lng ? parseFloat(lng) : null,
           timestamp: new Date().toISOString(),
-          sizeBytes: buffer.length,
+          sizeBytes: photo.size,
         };
 
         const response = await fetch(apiUrl, {

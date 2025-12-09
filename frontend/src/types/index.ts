@@ -293,15 +293,15 @@ export interface CreateCallReportDto {
   checkInTime?: string;
   checkInLat?: number;
   checkInLng?: number;
-  activityType: ActivityType;
-  activitiesDone: string[];
+  callActivityType?: ActivityType;
+  activitiesDone?: string[];
   customerResponse?: string;
   customerRequest?: string;
   customerObjections?: string;
   customerNeeds?: string;
   customerComplaints?: string;
   nextAction?: string;
-  isPlanned: boolean;
+  isPlanned?: boolean;
 }
 
 export interface UpdateCallReportDto {

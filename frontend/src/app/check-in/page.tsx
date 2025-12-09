@@ -126,7 +126,7 @@ export default function CheckInPage() {
         checkInTime: new Date().toISOString(),
         checkInLat: currentLocation.lat,
         checkInLng: currentLocation.lng,
-        activityType: 'FACE_TO_FACE',
+        callActivityType: 'FACE_TO_FACE',
         activitiesDone: plan.plannedActivities || [],
         isPlanned: true,
       });

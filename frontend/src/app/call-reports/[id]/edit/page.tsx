@@ -120,7 +120,7 @@ export default function EditCallReportPage() {
 
       // Pre-fill form with existing data
       setFormData({
-        callActivityType: reportData.activityType || 'FACE_TO_FACE',
+        callActivityType: reportData.callActivityType || 'FACE_TO_FACE',
         activitiesDone: reportData.activitiesDone || [],
         customerResponse: reportData.customerResponse || '',
         customerRequest: reportData.customerRequest || '',

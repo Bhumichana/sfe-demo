@@ -249,7 +249,7 @@ export default function CallReportsPage() {
                           />
                         </svg>
                         <span>
-                          {report.activityType === 'VIRTUAL' ? 'Virtual' : 'พบหน้า'}
+                          {report.callActivityType === 'VIRTUAL' ? 'Virtual' : 'พบหน้า'}
                         </span>
                       </div>
                     </div>

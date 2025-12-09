@@ -364,7 +364,7 @@ export default function CallReportDetailPage() {
                 <div>
                   <span className="text-sm text-muted-foreground">ประเภท:</span>
                   <span className="ml-2 font-medium">
-                    {report.activityType === 'VIRTUAL' ? 'Virtual' : 'พบหน้า'}
+                    {report.callActivityType === 'VIRTUAL' ? 'Virtual' : 'พบหน้า'}
                   </span>
                 </div>
               </div>

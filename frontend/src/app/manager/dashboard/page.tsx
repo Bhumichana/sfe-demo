@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
 import StatsCard from '@/components/dashboard/StatsCard';
-import BottomNav from '@/components/BottomNav';
+import MainLayout from '@/components/layouts/MainLayout';
 
 interface DashboardStats {
   totalCalls: number;
@@ -22,7 +22,7 @@ interface DashboardStats {
 
 export default function ManagerDashboard() {
   const router = useRouter();
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -85,11 +85,6 @@ export default function ManagerDashboard() {
     setShowDateFilter(false);
   };
 
-  const handleLogout = async () => {
-    await logout();
-    router.push('/login');
-  };
-
   if (!isAuthenticated || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -99,60 +94,13 @@ export default function ManagerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col pb-20">
-      {/* Header */}
-      <header className="bg-white border-b border-border shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 gradient-gold rounded-full flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-foreground">Manager Dashboard</h1>
-                <p className="text-xs text-muted-foreground">{user.fullName} - {user.role}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              {/* Notification Bell */}
-              <button
-                onClick={() => router.push('/notifications')}
-                className="relative p-2 text-foreground hover:bg-gray-100 rounded-lg transition-colors"
-                aria-label="Notifications"
-              >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-              </button>
-
-              {/* Settings Icon */}
-              <button
-                onClick={() => router.push('/settings')}
-                className="p-2 text-foreground hover:bg-gray-100 rounded-lg transition-colors"
-                aria-label="Settings"
-              >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </button>
-
-              {/* Logout Button */}
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 text-sm font-medium text-error border border-error rounded-lg hover:bg-error/10 transition-colors"
-              >
-                ออกจากระบบ
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <MainLayout
+      title="Manager Dashboard"
+      subtitle={`${user.fullName} - ${user.role}`}
+      showBackButton={false}
+    >
       {/* Welcome Banner */}
-      <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="mb-6">
         <div className="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl p-6 shadow-lg">
           <div className="flex items-center gap-4">
             {user.avatarUrl ? (
@@ -184,7 +132,7 @@ export default function ManagerDashboard() {
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="space-y-6">
         {/* Date Filter Section */}
         <div className="mb-6 bg-white rounded-lg p-4 shadow-sm border border-border">
           <div className="flex items-center justify-between">
@@ -391,20 +339,7 @@ export default function ManagerDashboard() {
             </div>
           </>
         )}
-      </main>
-
-      {/* Bottom Navigation */}
-      <BottomNav />
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-gray-300 py-6 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center text-sm">
-            <p>&copy; 2025 SFE Mobile. All rights reserved.</p>
-            <p className="mt-1 text-gray-500">Sales Force Effectiveness Platform</p>
-          </div>
-        </div>
-      </footer>
-    </div>
+      </div>
+    </MainLayout>
   );
 }

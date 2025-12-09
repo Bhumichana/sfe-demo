@@ -8,8 +8,8 @@ export default function BottomNav() {
   const router = useRouter();
   const { user } = useAuthStore();
 
-  // Check if user is a manager
-  const isManager = user?.role === 'SM' || user?.role === 'MM';
+  // Check if user is a manager (Sales Manager, Supervisor, Product Manager, Marketing Manager)
+  const isManager = user?.role === 'SM' || user?.role === 'SUP' || user?.role === 'PM' || user?.role === 'MM';
 
   const navItems = [
     {

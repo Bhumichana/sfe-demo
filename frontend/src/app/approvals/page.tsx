@@ -26,8 +26,8 @@ export default function ApprovalsPage() {
       return;
     }
 
-    // Check if user is a manager
-    if (user?.role !== 'SM' && user?.role !== 'MM') {
+    // Check if user is a manager (Sales Manager, Supervisor, Product Manager, Marketing Manager)
+    if (user?.role !== 'SM' && user?.role !== 'SUP' && user?.role !== 'PM' && user?.role !== 'MM') {
       alert('คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
       router.push('/');
       return;

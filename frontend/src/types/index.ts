@@ -249,7 +249,7 @@ export interface CallReport {
   checkOutTime?: string;
   checkOutLat?: number;
   checkOutLng?: number;
-  activityType: ActivityType;
+  callActivityType: ActivityType;
   activitiesDone: string[];
   customerResponse?: string;
   customerRequest?: string;

@@ -241,7 +241,7 @@ export default function CameraModal({
         </div>
 
         {/* Camera View / Preview */}
-        <div className="bg-black relative overflow-hidden flex-shrink-0" style={{ height: 'calc(100vh - 280px)', maxHeight: '60vh' }}>
+        <div className="bg-black relative overflow-hidden flex-1 min-h-0">
           {/* Video Stream */}
           {!capturedPhoto && (
             <video
@@ -267,13 +267,13 @@ export default function CameraModal({
 
           {/* Camera Controls Overlay */}
           {!capturedPhoto && cameraActive && (
-            <div className="absolute top-4 right-4">
+            <div className="absolute top-2 right-2 md:top-4 md:right-4">
               <button
                 onClick={switchCamera}
-                className="bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-colors"
+                className="bg-white/20 backdrop-blur-sm text-white p-2 md:p-3 rounded-full hover:bg-white/30 transition-colors"
                 title="สลับกล้อง"
               >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -287,38 +287,38 @@ export default function CameraModal({
         </div>
 
         {/* Bottom Controls Container */}
-        <div className="bg-gray-900 flex-shrink-0">
+        <div className="bg-gray-900 flex-shrink-0 max-h-[40vh] overflow-y-auto">
           {/* Category Selection */}
-          <div className="text-white px-3 pt-2 pb-1">
-            <label className="block text-[10px] font-medium mb-1.5 text-gray-400">หมวดหมู่:</label>
-            <div className="grid grid-cols-5 gap-1.5">
+          <div className="text-white px-2 md:px-3 pt-1.5 md:pt-2 pb-1">
+            <label className="block text-[9px] md:text-[10px] font-medium mb-1 md:mb-1.5 text-gray-400">หมวดหมู่:</label>
+            <div className="grid grid-cols-5 gap-1 md:gap-1.5">
               {PHOTO_CATEGORIES.map((cat) => (
                 <button
                   key={cat.value}
                   onClick={() => setSelectedCategory(cat.value)}
-                  className={`p-1.5 rounded-lg border-2 transition-all ${
+                  className={`p-1 md:p-1.5 rounded-lg border-2 transition-all ${
                     selectedCategory === cat.value
                       ? 'border-primary bg-primary/20'
                       : 'border-gray-700 bg-gray-800 hover:border-gray-600'
                   }`}
                 >
-                  <div className="text-lg mb-0.5">{cat.icon}</div>
-                  <div className="text-[9px] leading-tight">{cat.label}</div>
+                  <div className="text-base md:text-lg mb-0.5">{cat.icon}</div>
+                  <div className="text-[8px] md:text-[9px] leading-tight">{cat.label}</div>
                 </button>
               ))}
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="text-white px-3 pb-3 pt-2.5 flex items-center justify-center gap-3">
+          <div className="text-white px-2 md:px-3 pb-2 md:pb-3 pt-1.5 md:pt-2.5 flex items-center justify-center gap-2 md:gap-3">
             {!capturedPhoto ? (
               // Capture button
               <button
                 onClick={capturePhoto}
                 disabled={!cameraActive}
-                className="bg-white text-gray-900 p-4 rounded-full hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
+                className="bg-white text-gray-900 p-3 md:p-4 rounded-full hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
               >
-                <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-7 h-7 md:w-8 md:h-8" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
                     d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z"
@@ -331,9 +331,9 @@ export default function CameraModal({
               <>
                 <button
                   onClick={retakePhoto}
-                  className="flex-1 bg-gray-700 text-white py-3 px-4 rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 bg-gray-700 text-white py-2.5 md:py-3 px-3 md:px-4 rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center gap-1.5 md:gap-2 text-sm md:text-base"
                 >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -345,9 +345,9 @@ export default function CameraModal({
                 </button>
                 <button
                   onClick={confirmPhoto}
-                  className="flex-1 bg-success text-white py-3 px-4 rounded-lg hover:bg-success/90 transition-colors flex items-center justify-center gap-2 font-semibold"
+                  className="flex-1 bg-success text-white py-2.5 md:py-3 px-3 md:px-4 rounded-lg hover:bg-success/90 transition-colors flex items-center justify-center gap-1.5 md:gap-2 font-semibold text-sm md:text-base"
                 >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-4 h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path
                       fillRule="evenodd"
                       d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"

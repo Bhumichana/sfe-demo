@@ -286,76 +286,79 @@ export default function CameraModal({
           )}
         </div>
 
-        {/* Category Selection */}
-        <div className="bg-gray-900 text-white p-4">
-          <label className="block text-sm font-medium mb-2">หมวดหมู่รูปภาพ:</label>
-          <div className="grid grid-cols-5 gap-2">
-            {PHOTO_CATEGORIES.map((cat) => (
-              <button
-                key={cat.value}
-                onClick={() => setSelectedCategory(cat.value)}
-                className={`p-3 rounded-lg border-2 transition-all ${
-                  selectedCategory === cat.value
-                    ? 'border-primary bg-primary/20 scale-105'
-                    : 'border-gray-700 bg-gray-800 hover:border-gray-600'
-                }`}
-              >
-                <div className="text-2xl mb-1">{cat.icon}</div>
-                <div className="text-xs">{cat.label}</div>
-              </button>
-            ))}
+        {/* Bottom Controls Container */}
+        <div className="bg-gray-900">
+          {/* Category Selection */}
+          <div className="text-white px-4 pt-3 pb-2">
+            <label className="block text-xs font-medium mb-2 text-gray-400">หมวดหมู่:</label>
+            <div className="grid grid-cols-5 gap-2">
+              {PHOTO_CATEGORIES.map((cat) => (
+                <button
+                  key={cat.value}
+                  onClick={() => setSelectedCategory(cat.value)}
+                  className={`p-2 rounded-lg border-2 transition-all ${
+                    selectedCategory === cat.value
+                      ? 'border-primary bg-primary/20'
+                      : 'border-gray-700 bg-gray-800 hover:border-gray-600'
+                  }`}
+                >
+                  <div className="text-xl mb-0.5">{cat.icon}</div>
+                  <div className="text-[10px] leading-tight">{cat.label}</div>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
 
-        {/* Action Buttons */}
-        <div className="bg-gray-900 text-white p-4 flex items-center justify-center gap-4">
-          {!capturedPhoto ? (
-            // Capture button
-            <button
-              onClick={capturePhoto}
-              disabled={!cameraActive}
-              className="bg-white text-gray-900 p-4 rounded-full hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
-            >
-              <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
-          ) : (
-            // Retake and Confirm buttons
-            <>
+          {/* Action Buttons */}
+          <div className="text-white px-4 pb-4 pt-3 flex items-center justify-center gap-4">
+            {!capturedPhoto ? (
+              // Capture button
               <button
-                onClick={retakePhoto}
-                className="flex-1 bg-gray-700 text-white py-3 px-6 rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
+                onClick={capturePhoto}
+                disabled={!cameraActive}
+                className="bg-white text-gray-900 p-4 rounded-full hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  />
-                </svg>
-                ถ่ายใหม่
-              </button>
-              <button
-                onClick={confirmPhoto}
-                className="flex-1 bg-success text-white py-3 px-6 rounded-lg hover:bg-success/90 transition-colors flex items-center justify-center gap-2 font-semibold"
-              >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z"
                     clipRule="evenodd"
                   />
                 </svg>
-                {mode === 'multi' ? 'ถ่ายรูปเพิ่ม' : 'ใช้รูปนี้'}
               </button>
-            </>
-          )}
+            ) : (
+              // Retake and Confirm buttons
+              <>
+                <button
+                  onClick={retakePhoto}
+                  className="flex-1 bg-gray-700 text-white py-3 px-4 rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                  ถ่ายใหม่
+                </button>
+                <button
+                  onClick={confirmPhoto}
+                  className="flex-1 bg-success text-white py-3 px-4 rounded-lg hover:bg-success/90 transition-colors flex items-center justify-center gap-2 font-semibold"
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  {mode === 'multi' ? 'ถ่ายรูปเพิ่ม' : 'ใช้รูปนี้'}
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>

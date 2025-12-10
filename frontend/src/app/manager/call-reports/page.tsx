@@ -4,12 +4,30 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
 import MainLayout from '@/components/layouts/MainLayout';
+import dynamic from 'next/dynamic';
+
+// Dynamically import LocationMap to avoid SSR issues with Leaflet
+const DynamicLocationMap = dynamic(() => import('@/components/maps/LocationMap'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center h-[350px] bg-gray-100 rounded-xl">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mx-auto mb-2"></div>
+        <p className="text-sm text-muted-foreground">กำลังโหลดแผนที่...</p>
+      </div>
+    </div>
+  ),
+});
 
 interface CallReport {
   id: string;
   callDate: string;
   checkInTime: string | null;
   checkOutTime: string | null;
+  checkInLat: number | null;
+  checkInLng: number | null;
+  checkOutLat: number | null;
+  checkOutLng: number | null;
   callActivityType: 'VIRTUAL' | 'FACE_TO_FACE' | null;
   customerResponse: string | null;
   customerRequest: string | null;
@@ -269,6 +287,64 @@ export default function CallReportsReviewPage() {
                         </div>
                       </div>
                     )}
+
+                    {/* GPS Location Maps */}
+                    {(report.checkInLat && report.checkInLng) || (report.checkOutLat && report.checkOutLng) ? (
+                      <div className="mb-4 space-y-4">
+                        <div className="text-sm font-medium text-foreground flex items-center gap-2 mb-2">
+                          <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                          </svg>
+                          📍 ตำแหน่ง GPS
+                        </div>
+
+                        <div className={`grid gap-4 ${(report.checkInLat && report.checkInLng && report.checkOutLat && report.checkOutLng) ? 'md:grid-cols-2' : 'grid-cols-1'}`}>
+                          {/* Check-in Map */}
+                          {report.checkInLat && report.checkInLng && (
+                            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                              <div className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 flex items-center gap-2">
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                <span className="font-medium text-sm">จุด Check-in</span>
+                              </div>
+                              <div className="p-0">
+                                <DynamicLocationMap
+                                  lat={Number(report.checkInLat)}
+                                  lng={Number(report.checkInLng)}
+                                  height="300px"
+                                  readOnly={true}
+                                  showCoordinates={true}
+                                />
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Check-out Map */}
+                          {report.checkOutLat && report.checkOutLng && (
+                            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                              <div className="bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 flex items-center gap-2">
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                <span className="font-medium text-sm">จุด Check-out</span>
+                              </div>
+                              <div className="p-0">
+                                <DynamicLocationMap
+                                  lat={Number(report.checkOutLat)}
+                                  lng={Number(report.checkOutLng)}
+                                  height="300px"
+                                  readOnly={true}
+                                  showCoordinates={true}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : null}
 
                     {/* Report Details */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-border">

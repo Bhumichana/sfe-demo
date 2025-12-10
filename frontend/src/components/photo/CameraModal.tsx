@@ -244,9 +244,9 @@ export default function CameraModal({
         <div
           className="bg-black relative overflow-hidden flex-shrink-0"
           style={{
-            height: 'calc(100vh - 250px)',
-            minHeight: '300px',
-            maxHeight: '60vh'
+            height: 'calc(100vh - 280px)',
+            minHeight: '280px',
+            maxHeight: '55vh'
           }}
         >
           {/* Video Stream */}

@@ -241,7 +241,14 @@ export default function CameraModal({
         </div>
 
         {/* Camera View / Preview */}
-        <div className="bg-black relative overflow-hidden flex-1 min-h-0">
+        <div
+          className="bg-black relative overflow-hidden flex-shrink-0"
+          style={{
+            height: 'calc(100vh - 250px)',
+            minHeight: '300px',
+            maxHeight: '60vh'
+          }}
+        >
           {/* Video Stream */}
           {!capturedPhoto && (
             <video
@@ -287,7 +294,7 @@ export default function CameraModal({
         </div>
 
         {/* Bottom Controls Container */}
-        <div className="bg-gray-900 flex-shrink-0 max-h-[40vh] overflow-y-auto">
+        <div className="bg-gray-900 flex-shrink-0">
           {/* Category Selection */}
           <div className="text-white px-2 md:px-3 pt-1.5 md:pt-2 pb-1">
             <label className="block text-[9px] md:text-[10px] font-medium mb-1 md:mb-1.5 text-gray-400">หมวดหมู่:</label>

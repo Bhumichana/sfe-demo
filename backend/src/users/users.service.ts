@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto, UpdateUserDto } from './dto';
+import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -203,8 +204,8 @@ export class UsersService {
     return result;
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto) {
-    console.log('🔍 Update User Service Called:', { id, updateUserDto });
+  async update(id: string, updateUserDto: UpdateUserDto, currentUser?: any) {
+    console.log('🔍 Update User Service Called:', { id, updateUserDto, currentUserId: currentUser?.id });
 
     // Check if user exists
     const existingUser = await this.prisma.user.findUnique({
@@ -214,6 +215,27 @@ export class UsersService {
     if (!existingUser) {
       console.log('❌ User not found:', id);
       throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    // Permission check
+    const isSelfUpdate = currentUser && currentUser.id === id;
+    const isCEO = currentUser && currentUser.role === UserRole.CEO;
+
+    if (!isSelfUpdate && !isCEO) {
+      throw new ForbiddenException('You can only update your own profile or need CEO role');
+    }
+
+    // If self-update, only allow specific fields
+    if (isSelfUpdate && !isCEO) {
+      const allowedFields = ['fullName', 'phone', 'avatarUrl', 'password'];
+      const requestedFields = Object.keys(updateUserDto);
+      const restrictedFields = requestedFields.filter(field => !allowedFields.includes(field));
+
+      if (restrictedFields.length > 0) {
+        throw new ForbiddenException(
+          `You can only update these fields: ${allowedFields.join(', ')}. Restricted: ${restrictedFields.join(', ')}`
+        );
+      }
     }
 
     // Check for username/email conflicts (if being updated)

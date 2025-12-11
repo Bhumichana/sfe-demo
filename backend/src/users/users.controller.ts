@@ -68,15 +68,18 @@ export class UsersController {
   }
 
   @Patch(':id')
-  @Roles(UserRole.CEO)
-  @ApiOperation({ summary: 'Update user (CEO only)' })
+  @ApiOperation({ summary: 'Update user (CEO can update all fields, users can update their own profile)' })
   @ApiResponse({ status: 200, description: 'User updated successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 409, description: 'Username or email already exists' })
-  @ApiResponse({ status: 403, description: 'Only CEO can update users' })
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    console.log('📝 Update User Request:', { id, body: updateUserDto });
-    return this.usersService.update(id, updateUserDto);
+  @ApiResponse({ status: 403, description: 'You can only update your own profile or need CEO role' })
+  update(
+    @CurrentUser() currentUser: any,
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    console.log('📝 Update User Request:', { id, currentUserId: currentUser.id, body: updateUserDto });
+    return this.usersService.update(id, updateUserDto, currentUser);
   }
 
   @Delete(':id')

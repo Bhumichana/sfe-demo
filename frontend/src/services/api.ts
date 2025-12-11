@@ -535,6 +535,7 @@ export const usersApi = {
     managerId?: string;
     territoryId?: string;
     password?: string;
+    avatarUrl?: string;
     isActive?: boolean;
   }): Promise<any> => {
     const response = await api.patch(`/users/${id}`, data);

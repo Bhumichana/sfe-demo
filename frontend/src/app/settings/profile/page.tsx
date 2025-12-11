@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
 import MainLayout from '@/components/layouts/MainLayout';
-import axios from 'axios';
+import { usersApi } from '@/services/api';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -59,16 +59,15 @@ export default function ProfilePage() {
       const { url } = await uploadResponse.json();
 
       // Update user profile with new avatar URL
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-      await axios.patch(`${apiUrl}/users/${user.id}`, {
+      await usersApi.update(user.id, {
         avatarUrl: url,
       });
 
       alert('อัปโหลดรูปภาพสำเร็จ');
 
       // Reload user data
-      const response = await axios.get(`${apiUrl}/users/${user.id}`);
-      localStorage.setItem('sfe_user', JSON.stringify(response.data));
+      const updatedUser = await usersApi.findOne(user.id);
+      localStorage.setItem('sfe_user', JSON.stringify(updatedUser));
       initAuth();
     } catch (error: any) {
       console.error('Error uploading avatar:', error);
@@ -85,9 +84,8 @@ export default function ProfilePage() {
 
     try {
       setLoading(true);
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
-      await axios.patch(`${apiUrl}/users/${user.id}`, {
+      await usersApi.update(user.id, {
         fullName: formData.fullName,
         phone: formData.phone || undefined,
       });
@@ -95,8 +93,8 @@ export default function ProfilePage() {
       alert('อัปเดตข้อมูลสำเร็จ');
 
       // Reload user data
-      const response = await axios.get(`${apiUrl}/users/${user.id}`);
-      localStorage.setItem('sfe_user', JSON.stringify(response.data));
+      const updatedUser = await usersApi.findOne(user.id);
+      localStorage.setItem('sfe_user', JSON.stringify(updatedUser));
       initAuth();
     } catch (error: any) {
       console.error('Error updating profile:', error);
@@ -123,9 +121,8 @@ export default function ProfilePage() {
 
     try {
       setLoading(true);
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
-      await axios.patch(`${apiUrl}/users/${user.id}`, {
+      await usersApi.update(user.id, {
         password: passwordData.newPassword,
       });
 

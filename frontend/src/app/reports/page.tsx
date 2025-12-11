@@ -79,8 +79,11 @@ export default function ReportsPage() {
     try {
       setLoading(true);
 
-      // Fetch all call reports for the user
-      const reports = await callReportsApi.findByUser(user.id);
+      // Fetch all call reports based on user role (Backend handles filtering)
+      // SR: sees own reports only
+      // SUP: sees own + subordinates' reports
+      // SM/SD: sees all reports
+      const reports = await callReportsApi.findAll();
       setCallReports(reports);
 
       // Calculate stats
@@ -195,7 +198,10 @@ export default function ReportsPage() {
 
   if (loading) {
     return (
-      <MainLayout title="My Reports (Analytics)" subtitle="ภาพรวมและวิเคราะห์ผลงาน">
+      <MainLayout
+        title={user?.role === 'SR' ? 'My Reports (Analytics)' : 'Team Reports (Analytics)'}
+        subtitle="ภาพรวมและวิเคราะห์ผลงาน"
+      >
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
         </div>
@@ -206,7 +212,10 @@ export default function ReportsPage() {
   const maxDailyCalls = Math.max(...dailyCalls.map(d => d.count), 1);
 
   return (
-    <MainLayout title="My Reports (Analytics)" subtitle="ภาพรวมและวิเคราะห์ผลงาน">
+    <MainLayout
+      title={user?.role === 'SR' ? 'My Reports (Analytics)' : 'Team Reports (Analytics)'}
+      subtitle="ภาพรวมและวิเคราะห์ผลงาน"
+    >
       <div className="space-y-6">
         {/* Export Button */}
         <div className="flex justify-end">

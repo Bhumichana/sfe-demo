@@ -805,3 +805,66 @@ export const customersApi = {
     return response.data;
   },
 };
+
+// Manager API
+export const managerApi = {
+  /**
+   * Get manager dashboard statistics
+   */
+  getDashboard: async (
+    managerId: string,
+    params?: {
+      startDate?: string;
+      endDate?: string;
+    }
+  ): Promise<any> => {
+    const response = await api.get(`/manager/dashboard/${managerId}`, { params });
+    return response.data;
+  },
+
+  /**
+   * Get team members list
+   */
+  getTeamMembers: async (managerId: string): Promise<any> => {
+    const response = await api.get(`/manager/team/${managerId}`);
+    return response.data;
+  },
+
+  /**
+   * Get call reports for review
+   */
+  getCallReports: async (
+    managerId: string,
+    params?: {
+      srId?: string;
+      customerId?: string;
+      startDate?: string;
+      endDate?: string;
+    }
+  ): Promise<any> => {
+    const response = await api.get(`/manager/call-reports/${managerId}`, { params });
+    return response.data;
+  },
+
+  /**
+   * Get team pre-call plans
+   */
+  getTeamPlans: async (managerId: string): Promise<any> => {
+    const response = await api.get(`/manager/team-plans/${managerId}`);
+    return response.data;
+  },
+
+  /**
+   * Get team performance metrics
+   */
+  getTeamPerformance: async (
+    managerId: string,
+    params?: {
+      startDate?: string;
+      endDate?: string;
+    }
+  ): Promise<any> => {
+    const response = await api.get(`/manager/team-performance/${managerId}`, { params });
+    return response.data;
+  },
+};

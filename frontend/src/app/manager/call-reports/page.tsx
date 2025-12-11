@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
+import { managerApi } from '@/services/api';
 import MainLayout from '@/components/layouts/MainLayout';
 import dynamic from 'next/dynamic';
 
@@ -103,15 +104,11 @@ export default function CallReportsReviewPage() {
   }, [isAuthenticated, user, router]);
 
   const fetchCallReports = async () => {
+    if (!user?.id) return;
+
     try {
       setLoading(true);
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/manager/call-reports/${user?.id}`
-      );
-
-      if (!response.ok) throw new Error('Failed to fetch call reports');
-
-      const data = await response.json();
+      const data = await managerApi.getCallReports(user.id);
       setReports(data);
     } catch (error) {
       console.error('Error fetching call reports:', error);

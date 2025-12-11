@@ -135,8 +135,18 @@ export class ManagerService {
       throw new NotFoundException('Manager not found');
     }
 
+    // If SM/SD, return ALL team members (SR and SUP) in the company
+    const teamMembersWhere: any = {};
+    if (currentUser.role === UserRole.SM || currentUser.role === UserRole.SD) {
+      // SM/SD see everyone who is SR or SUP
+      teamMembersWhere.role = { in: ['SR', 'SUP'] };
+    } else {
+      // SUP sees only their own team
+      teamMembersWhere.managerId = managerId;
+    }
+
     const teamMembers = await this.prisma.user.findMany({
-      where: { managerId },
+      where: teamMembersWhere,
       select: {
         id: true,
         fullName: true,
@@ -228,19 +238,22 @@ export class ManagerService {
     }
     // SM/SD can view any manager's team reports - no restriction needed
 
-    // Get subordinate IDs
-    const subordinates = await this.prisma.user.findMany({
-      where: { managerId },
-      select: { id: true },
-    });
-
-    const subordinateIds = subordinates.map((s) => s.id);
-
     // Build where clause
     const where: any = {
-      srId: { in: subordinateIds },
       status: CallReportStatus.SUBMITTED,
     };
+
+    // If SM/SD, show ALL reports. If SUP, show only their team's reports
+    if (currentUser.role === UserRole.SUP) {
+      // Get subordinate IDs for this manager
+      const subordinates = await this.prisma.user.findMany({
+        where: { managerId },
+        select: { id: true },
+      });
+      const subordinateIds = subordinates.map((s) => s.id);
+      where.srId = { in: subordinateIds };
+    }
+    // SM/SD: No filter on srId - they see all reports
 
     if (srId) where.srId = srId;
     if (customerId) where.customerId = customerId;
@@ -296,19 +309,24 @@ export class ManagerService {
     }
     // SM/SD can view any manager's team plans - no restriction needed
 
-    // Get subordinate IDs
-    const subordinates = await this.prisma.user.findMany({
-      where: { managerId },
-      select: { id: true },
-    });
+    // Build where clause
+    const where: any = {};
 
-    const subordinateIds = subordinates.map((s) => s.id);
+    // If SM/SD, show ALL plans. If SUP, show only their team's plans
+    if (currentUser.role === UserRole.SUP) {
+      // Get subordinate IDs for this manager
+      const subordinates = await this.prisma.user.findMany({
+        where: { managerId },
+        select: { id: true },
+      });
+      const subordinateIds = subordinates.map((s) => s.id);
+      where.srId = { in: subordinateIds };
+    }
+    // SM/SD: No filter on srId - they see all plans
 
     // Get all plans from team members
     const plans = await this.prisma.preCallPlan.findMany({
-      where: {
-        srId: { in: subordinateIds },
-      },
+      where,
       include: {
         sr: {
           select: { id: true, fullName: true, email: true },
@@ -336,9 +354,19 @@ export class ManagerService {
     }
     // SM/SD can view any manager's team performance - no restriction needed
 
+    // Build where clause for subordinates
+    const subordinatesWhere: any = {};
+    if (currentUser.role === UserRole.SM || currentUser.role === UserRole.SD) {
+      // SM/SD see everyone who is SR or SUP
+      subordinatesWhere.role = { in: ['SR', 'SUP'] };
+    } else {
+      // SUP sees only their own team
+      subordinatesWhere.managerId = managerId;
+    }
+
     // Get subordinate IDs
     const subordinates = await this.prisma.user.findMany({
-      where: { managerId },
+      where: subordinatesWhere,
       select: { id: true, fullName: true, email: true },
     });
 

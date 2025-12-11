@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { PlanStatus, CallReportStatus, CustomerType } from '@prisma/client';
+import { PlanStatus, CallReportStatus, CustomerType, UserRole } from '@prisma/client';
 
 @Injectable()
 export class ManagerService {
@@ -9,7 +9,12 @@ export class ManagerService {
   /**
    * Get dashboard statistics for manager
    */
-  async getDashboardStats(managerId: string, startDate?: string, endDate?: string) {
+  async getDashboardStats(currentUser: any, managerId: string, startDate?: string, endDate?: string) {
+    // Permission check: SUP can only see their own dashboard, SM/SD can see all
+    if (currentUser.role === UserRole.SUP && currentUser.id !== managerId) {
+      throw new ForbiddenException('You can only view your own dashboard');
+    }
+
     // Verify manager exists
     const manager = await this.prisma.user.findUnique({
       where: { id: managerId },
@@ -114,7 +119,12 @@ export class ManagerService {
   /**
    * Get team members list
    */
-  async getTeamMembers(managerId: string) {
+  async getTeamMembers(currentUser: any, managerId: string) {
+    // Permission check: SUP can only see their own team, SM/SD can see all
+    if (currentUser.role === UserRole.SUP && currentUser.id !== managerId) {
+      throw new ForbiddenException('You can only view your own team');
+    }
+
     const manager = await this.prisma.user.findUnique({
       where: { id: managerId },
     });
@@ -203,12 +213,18 @@ export class ManagerService {
    * Get call reports for review
    */
   async getCallReports(
+    currentUser: any,
     managerId: string,
     srId?: string,
     customerId?: string,
     startDate?: string,
     endDate?: string,
   ) {
+    // Permission check: SUP can only see their own team's reports, SM/SD can see all
+    if (currentUser.role === UserRole.SUP && currentUser.id !== managerId) {
+      throw new ForbiddenException('You can only view your own team reports');
+    }
+
     // Get subordinate IDs
     const subordinates = await this.prisma.user.findMany({
       where: { managerId },
@@ -270,7 +286,12 @@ export class ManagerService {
   /**
    * Get all pre-call plans for team members
    */
-  async getTeamPlans(managerId: string) {
+  async getTeamPlans(currentUser: any, managerId: string) {
+    // Permission check: SUP can only see their own team's plans, SM/SD can see all
+    if (currentUser.role === UserRole.SUP && currentUser.id !== managerId) {
+      throw new ForbiddenException('You can only view your own team plans');
+    }
+
     // Get subordinate IDs
     const subordinates = await this.prisma.user.findMany({
       where: { managerId },
@@ -304,7 +325,12 @@ export class ManagerService {
   /**
    * Get team performance metrics
    */
-  async getTeamPerformance(managerId: string, startDate?: string, endDate?: string) {
+  async getTeamPerformance(currentUser: any, managerId: string, startDate?: string, endDate?: string) {
+    // Permission check: SUP can only see their own team's performance, SM/SD can see all
+    if (currentUser.role === UserRole.SUP && currentUser.id !== managerId) {
+      throw new ForbiddenException('You can only view your own team performance');
+    }
+
     // Get subordinate IDs
     const subordinates = await this.prisma.user.findMany({
       where: { managerId },

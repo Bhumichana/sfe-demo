@@ -9,7 +9,13 @@ import { CreateCallReportDto } from './dto/create-call-report.dto';
 import { UpdateCallReportDto } from './dto/update-call-report.dto';
 import { CheckOutDto } from './dto/check-out.dto';
 import { AddCoachingDto } from './dto/add-coaching.dto';
-import { CallReportStatus } from '@prisma/client';
+import { CallReportStatus, UserRole } from '@prisma/client';
+import {
+  requireCallActivityAccess,
+  requireUserDataAccess,
+  getSubordinateIds,
+  buildDataAccessFilter,
+} from '../../common/helpers/permission.helper';
 
 @Injectable()
 export class CallReportsService {
@@ -92,13 +98,25 @@ export class CallReportsService {
    * Get all call reports with filters
    */
   async findAll(
+    currentUser: any,
     status?: CallReportStatus,
     srId?: string,
     customerId?: string,
     startDate?: string,
     endDate?: string,
   ) {
-    const where: any = {};
+    // Check if user can access call activities
+    requireCallActivityAccess(currentUser.role);
+
+    // Get subordinate IDs if needed
+    const subordinateIds = currentUser.role === UserRole.SUP
+      ? await getSubordinateIds(this.prisma, currentUser.id)
+      : [];
+
+    // Build filter based on role
+    const roleFilter = buildDataAccessFilter(currentUser, subordinateIds);
+
+    const where: any = { ...roleFilter };
 
     if (status) where.status = status;
     if (srId) where.srId = srId;
@@ -131,7 +149,10 @@ export class CallReportsService {
   /**
    * Get one call report by ID
    */
-  async findOne(id: string) {
+  async findOne(currentUser: any, id: string) {
+    // Check if user can access call activities
+    requireCallActivityAccess(currentUser.role);
+
     const report = await this.prisma.callReport.findUnique({
       where: { id },
       include: {
@@ -165,13 +186,32 @@ export class CallReportsService {
 
     if (!report) throw new NotFoundException('Call Report not found');
 
+    // Get subordinate IDs if needed
+    const subordinateIds = currentUser.role === UserRole.SUP
+      ? await getSubordinateIds(this.prisma, currentUser.id)
+      : [];
+
+    // Check permission to access this report
+    requireUserDataAccess(currentUser, report.srId, subordinateIds);
+
     return report;
   }
 
   /**
    * Get call reports by user
    */
-  async findByUser(userId: string, status?: CallReportStatus) {
+  async findByUser(currentUser: any, userId: string, status?: CallReportStatus) {
+    // Check if user can access call activities
+    requireCallActivityAccess(currentUser.role);
+
+    // Get subordinate IDs if needed
+    const subordinateIds = currentUser.role === UserRole.SUP
+      ? await getSubordinateIds(this.prisma, currentUser.id)
+      : [];
+
+    // Check permission to access this user's data
+    requireUserDataAccess(currentUser, userId, subordinateIds);
+
     const where: any = { srId: userId };
     if (status) where.status = status;
 
@@ -367,7 +407,10 @@ export class CallReportsService {
   /**
    * Add coaching comments (Manager)
    */
-  async addCoaching(id: string, coachingDto: AddCoachingDto) {
+  async addCoaching(currentUser: any, id: string, coachingDto: AddCoachingDto) {
+    // Check if user can access call activities
+    requireCallActivityAccess(currentUser.role);
+
     const report = await this.prisma.callReport.findUnique({
       where: { id },
       include: { sr: { select: { id: true, fullName: true } } },
@@ -376,6 +419,16 @@ export class CallReportsService {
     if (!report) throw new NotFoundException('Call Report not found');
     if (report.status !== CallReportStatus.SUBMITTED) {
       throw new BadRequestException('Only submitted reports can receive coaching');
+    }
+
+    // Verify that the coach is the SR's manager or higher role
+    const subordinateIds = await getSubordinateIds(this.prisma, currentUser.id);
+
+    if (
+      currentUser.role === UserRole.SUP &&
+      !subordinateIds.includes(report.srId)
+    ) {
+      throw new ForbiddenException('You can only coach your subordinates');
     }
 
     // Verify manager exists

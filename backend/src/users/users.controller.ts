@@ -12,16 +12,25 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto } from './dto';
+import { JwtAuthGuard } from '../modules/auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../modules/auth/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { UserRole } from '@prisma/client';
 
 @ApiTags('users')
 @Controller('users')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@ApiBearerAuth()
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a new user' })
+  @Roles(UserRole.CEO)
+  @ApiOperation({ summary: 'Create a new user (CEO only)' })
   @ApiResponse({ status: 201, description: 'User created successfully' })
   @ApiResponse({ status: 409, description: 'Username or email already exists' })
+  @ApiResponse({ status: 403, description: 'Only CEO can create users' })
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
@@ -59,35 +68,43 @@ export class UsersController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update user' })
+  @Roles(UserRole.CEO)
+  @ApiOperation({ summary: 'Update user (CEO only)' })
   @ApiResponse({ status: 200, description: 'User updated successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 409, description: 'Username or email already exists' })
+  @ApiResponse({ status: 403, description: 'Only CEO can update users' })
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     console.log('📝 Update User Request:', { id, body: updateUserDto });
     return this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Deactivate user (soft delete)' })
+  @Roles(UserRole.CEO)
+  @ApiOperation({ summary: 'Deactivate user (soft delete, CEO only)' })
   @ApiResponse({ status: 200, description: 'User deactivated successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiResponse({ status: 403, description: 'Only CEO can delete users' })
   remove(@Param('id') id: string) {
     return this.usersService.remove(id);
   }
 
   @Delete(':id/hard')
-  @ApiOperation({ summary: 'Permanently delete user' })
+  @Roles(UserRole.CEO)
+  @ApiOperation({ summary: 'Permanently delete user (CEO only)' })
   @ApiResponse({ status: 200, description: 'User permanently deleted' })
   @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiResponse({ status: 403, description: 'Only CEO can permanently delete users' })
   hardDelete(@Param('id') id: string) {
     return this.usersService.hardDelete(id);
   }
 
   @Post(':id/activate')
-  @ApiOperation({ summary: 'Activate user' })
+  @Roles(UserRole.CEO)
+  @ApiOperation({ summary: 'Activate user (CEO only)' })
   @ApiResponse({ status: 200, description: 'User activated successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiResponse({ status: 403, description: 'Only CEO can activate users' })
   activate(@Param('id') id: string) {
     return this.usersService.activate(id);
   }

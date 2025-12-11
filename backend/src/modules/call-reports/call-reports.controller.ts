@@ -8,17 +8,25 @@ import {
   Delete,
   Query,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiParam, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { CallReportsService } from './call-reports.service';
 import { CreateCallReportDto } from './dto/create-call-report.dto';
 import { UpdateCallReportDto } from './dto/update-call-report.dto';
 import { CheckOutDto } from './dto/check-out.dto';
 import { AddCoachingDto } from './dto/add-coaching.dto';
-import { CallReportStatus } from '@prisma/client';
+import { CallReportStatus, UserRole } from '@prisma/client';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 @ApiTags('call-reports')
 @Controller('call-reports')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@ApiBearerAuth()
+@Roles(UserRole.SR, UserRole.SUP, UserRole.SM, UserRole.SD) // CEO cannot access
 export class CallReportsController {
   constructor(private readonly callReportsService: CallReportsService) {}
 
@@ -29,31 +37,33 @@ export class CallReportsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all call reports with optional filters' })
+  @ApiOperation({ summary: 'Get all call reports (filtered by role permissions)' })
   @ApiQuery({ name: 'status', enum: CallReportStatus, required: false })
   @ApiQuery({ name: 'srId', required: false })
   @ApiQuery({ name: 'customerId', required: false })
   @ApiQuery({ name: 'startDate', required: false, example: '2025-01-01' })
   @ApiQuery({ name: 'endDate', required: false, example: '2025-01-31' })
   findAll(
+    @CurrentUser() user: any,
     @Query('status') status?: CallReportStatus,
     @Query('srId') srId?: string,
     @Query('customerId') customerId?: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
-    return this.callReportsService.findAll(status, srId, customerId, startDate, endDate);
+    return this.callReportsService.findAll(user, status, srId, customerId, startDate, endDate);
   }
 
   @Get('user/:userId')
-  @ApiOperation({ summary: 'Get all call reports for a specific user (SR)' })
+  @ApiOperation({ summary: 'Get all call reports for a specific user' })
   @ApiParam({ name: 'userId', type: 'string' })
   @ApiQuery({ name: 'status', enum: CallReportStatus, required: false })
   findByUser(
+    @CurrentUser() currentUser: any,
     @Param('userId', ParseUUIDPipe) userId: string,
     @Query('status') status?: CallReportStatus,
   ) {
-    return this.callReportsService.findByUser(userId, status);
+    return this.callReportsService.findByUser(currentUser, userId, status);
   }
 
   @Get(':id/photos')
@@ -66,64 +76,71 @@ export class CallReportsController {
   @Get(':id')
   @ApiOperation({ summary: 'Get a specific call report by ID' })
   @ApiParam({ name: 'id', type: 'string' })
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.callReportsService.findOne(id);
+  findOne(
+    @CurrentUser() user: any,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.callReportsService.findOne(user, id);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update a draft call report' })
+  @Roles(UserRole.SR) // Only SR can update their own reports
+  @ApiOperation({ summary: 'Update a draft call report (SR only)' })
   @ApiParam({ name: 'id', type: 'string' })
-  @ApiQuery({ name: 'userId', description: 'User ID for authorization', required: true })
   update(
+    @CurrentUser() user: any,
     @Param('id', ParseUUIDPipe) id: string,
-    @Query('userId', ParseUUIDPipe) userId: string,
     @Body() updateDto: UpdateCallReportDto,
   ) {
-    return this.callReportsService.update(id, userId, updateDto);
+    return this.callReportsService.update(id, user.id, updateDto);
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a draft call report' })
+  @Roles(UserRole.SR) // Only SR can delete their own reports
+  @ApiOperation({ summary: 'Delete a draft call report (SR only)' })
   @ApiParam({ name: 'id', type: 'string' })
-  @ApiQuery({ name: 'userId', description: 'User ID for authorization', required: true })
   remove(
+    @CurrentUser() user: any,
     @Param('id', ParseUUIDPipe) id: string,
-    @Query('userId', ParseUUIDPipe) userId: string,
   ) {
-    return this.callReportsService.remove(id, userId);
+    return this.callReportsService.remove(id, user.id);
   }
 
   @Post(':id/submit')
-  @ApiOperation({ summary: 'Submit a draft call report' })
+  @Roles(UserRole.SR) // Only SR can submit their own reports
+  @ApiOperation({ summary: 'Submit a draft call report (SR only)' })
   @ApiParam({ name: 'id', type: 'string' })
-  @ApiQuery({ name: 'userId', description: 'User ID for authorization', required: true })
   submit(
+    @CurrentUser() user: any,
     @Param('id', ParseUUIDPipe) id: string,
-    @Query('userId', ParseUUIDPipe) userId: string,
   ) {
-    return this.callReportsService.submit(id, userId);
+    return this.callReportsService.submit(id, user.id);
   }
 
   @Post(':id/check-out')
-  @ApiOperation({ summary: 'Check-out from a call' })
+  @Roles(UserRole.SR) // Only SR can check-out
+  @ApiOperation({ summary: 'Check-out from a call (SR only)' })
   @ApiParam({ name: 'id', type: 'string' })
-  @ApiQuery({ name: 'userId', description: 'User ID for authorization', required: true })
   checkOut(
+    @CurrentUser() user: any,
     @Param('id', ParseUUIDPipe) id: string,
-    @Query('userId', ParseUUIDPipe) userId: string,
     @Body() checkOutDto: CheckOutDto,
   ) {
-    return this.callReportsService.checkOut(id, userId, checkOutDto);
+    return this.callReportsService.checkOut(id, user.id, checkOutDto);
   }
 
   @Post(':id/coach')
-  @ApiOperation({ summary: 'Add coaching comments to a call report (Manager)' })
+  @Roles(UserRole.SUP, UserRole.SM, UserRole.SD) // Only managers can coach
+  @ApiOperation({ summary: 'Add coaching comments to a call report (Managers only)' })
   @ApiParam({ name: 'id', type: 'string' })
   addCoaching(
+    @CurrentUser() user: any,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() coachingDto: AddCoachingDto,
   ) {
-    return this.callReportsService.addCoaching(id, coachingDto);
+    // Set managerId from current user
+    coachingDto.managerId = user.id;
+    return this.callReportsService.addCoaching(user, id, coachingDto);
   }
 
   @Post(':id/photos')

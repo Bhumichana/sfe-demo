@@ -3,7 +3,13 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreatePreCallPlanDto } from './dto/create-pre-call-plan.dto';
 import { UpdatePreCallPlanDto } from './dto/update-pre-call-plan.dto';
 import { ApproveRejectPreCallPlanDto, ApprovalAction } from './dto/approve-reject-pre-call-plan.dto';
-import { PlanStatus } from '@prisma/client';
+import { PlanStatus, UserRole } from '@prisma/client';
+import {
+  requireCallActivityAccess,
+  requireUserDataAccess,
+  getSubordinateIds,
+  buildDataAccessFilter,
+} from '../../common/helpers/permission.helper';
 
 @Injectable()
 export class PreCallPlansService {
@@ -44,8 +50,26 @@ export class PreCallPlansService {
     });
   }
 
-  async findAll(status?: PlanStatus, srId?: string, customerId?: string, startDate?: string, endDate?: string) {
-    const where: any = {};
+  async findAll(
+    currentUser: any,
+    status?: PlanStatus,
+    srId?: string,
+    customerId?: string,
+    startDate?: string,
+    endDate?: string,
+  ) {
+    // Check if user can access call activities
+    requireCallActivityAccess(currentUser.role);
+
+    // Get subordinate IDs if needed
+    const subordinateIds = currentUser.role === UserRole.SUP
+      ? await getSubordinateIds(this.prisma, currentUser.id)
+      : [];
+
+    // Build filter based on role
+    const roleFilter = buildDataAccessFilter(currentUser, subordinateIds);
+
+    const where: any = { ...roleFilter };
 
     if (status) where.status = status;
     if (srId) where.srId = srId;
@@ -69,7 +93,10 @@ export class PreCallPlansService {
     });
   }
 
-  async findOne(id: string) {
+  async findOne(currentUser: any, id: string) {
+    // Check if user can access call activities
+    requireCallActivityAccess(currentUser.role);
+
     const plan = await this.prisma.preCallPlan.findUnique({
       where: { id },
       include: {
@@ -82,10 +109,29 @@ export class PreCallPlansService {
 
     if (!plan) throw new NotFoundException('Pre-Call Plan not found');
 
+    // Get subordinate IDs if needed
+    const subordinateIds = currentUser.role === UserRole.SUP
+      ? await getSubordinateIds(this.prisma, currentUser.id)
+      : [];
+
+    // Check permission to access this plan
+    requireUserDataAccess(currentUser, plan.srId, subordinateIds);
+
     return plan;
   }
 
-  async findByUser(userId: string, status?: PlanStatus) {
+  async findByUser(currentUser: any, userId: string, status?: PlanStatus) {
+    // Check if user can access call activities
+    requireCallActivityAccess(currentUser.role);
+
+    // Get subordinate IDs if needed
+    const subordinateIds = currentUser.role === UserRole.SUP
+      ? await getSubordinateIds(this.prisma, currentUser.id)
+      : [];
+
+    // Check permission to access this user's data
+    requireUserDataAccess(currentUser, userId, subordinateIds);
+
     const where: any = { srId: userId };
     if (status) where.status = status;
 
@@ -100,7 +146,15 @@ export class PreCallPlansService {
     });
   }
 
-  async findPendingApprovals(managerId: string) {
+  async findPendingApprovals(currentUser: any, managerId: string) {
+    // Check if user can access call activities
+    requireCallActivityAccess(currentUser.role);
+
+    // Ensure the requesting user can only see their own pending approvals
+    if (currentUser.id !== managerId) {
+      throw new ForbiddenException('You can only view your own pending approvals');
+    }
+
     // Find all SRs under this manager
     const subordinates = await this.prisma.user.findMany({
       where: { managerId },
@@ -108,6 +162,10 @@ export class PreCallPlansService {
     });
 
     const subordinateIds = subordinates.map(s => s.id);
+
+    if (subordinateIds.length === 0) {
+      return []; // No subordinates, no pending approvals
+    }
 
     return this.prisma.preCallPlan.findMany({
       where: {
@@ -181,7 +239,7 @@ export class PreCallPlansService {
       },
     });
 
-    // TODO: Create notification for manager
+    // Create notification for manager
     if (updatedPlan.sr.managerId) {
       await this.prisma.notification.create({
         data: {
@@ -198,15 +256,28 @@ export class PreCallPlansService {
     return updatedPlan;
   }
 
-  async approveOrReject(id: string, dto: ApproveRejectPreCallPlanDto) {
+  async approveOrReject(currentUser: any, id: string, dto: ApproveRejectPreCallPlanDto) {
+    // Check if user can access call activities
+    requireCallActivityAccess(currentUser.role);
+
     const plan = await this.prisma.preCallPlan.findUnique({
       where: { id },
-      include: { sr: { select: { id: true, fullName: true } } },
+      include: { sr: { select: { id: true, fullName: true, managerId: true } } },
     });
 
     if (!plan) throw new NotFoundException('Pre-Call Plan not found');
     if (plan.status !== PlanStatus.PENDING) {
       throw new BadRequestException('Only pending plans can be approved or rejected');
+    }
+
+    // Verify that the approver is the SR's manager or higher role
+    const subordinateIds = await getSubordinateIds(this.prisma, currentUser.id);
+
+    if (
+      currentUser.role === UserRole.SUP &&
+      !subordinateIds.includes(plan.srId)
+    ) {
+      throw new ForbiddenException('You can only approve/reject plans from your subordinates');
     }
 
     const isApprove = dto.action === ApprovalAction.APPROVE;

@@ -8,7 +8,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const { user } = useAuthStore();
 
-  const settingsMenuItems = [
+  const allSettingsMenuItems = [
     {
       id: 'users',
       title: 'จัดการผู้ใช้งาน',
@@ -20,6 +20,7 @@ export default function SettingsPage() {
       ),
       href: '/settings/users',
       color: 'primary',
+      allowedRoles: ['CEO'], // เฉพาะ CEO เท่านั้น
     },
     {
       id: 'teams',
@@ -32,6 +33,7 @@ export default function SettingsPage() {
       ),
       href: '/settings/teams',
       color: 'info',
+      allowedRoles: ['CEO', 'SD', 'SM'], // Managers
     },
     {
       id: 'territories',
@@ -44,6 +46,7 @@ export default function SettingsPage() {
       ),
       href: '/settings/territories',
       color: 'warning',
+      allowedRoles: ['CEO', 'SD', 'SM'], // Managers
     },
     {
       id: 'activities',
@@ -56,6 +59,7 @@ export default function SettingsPage() {
       ),
       href: '/settings/activities',
       color: 'success',
+      allowedRoles: ['CEO', 'SD', 'SM'], // Managers
     },
     {
       id: 'profile',
@@ -68,6 +72,7 @@ export default function SettingsPage() {
       ),
       href: '/settings/profile',
       color: 'info',
+      allowedRoles: ['CEO', 'SD', 'SM', 'SUP', 'SR'], // ทุกคน
     },
     {
       id: 'notifications',
@@ -80,6 +85,7 @@ export default function SettingsPage() {
       ),
       href: '/settings/notifications',
       color: 'warning',
+      allowedRoles: ['CEO', 'SD', 'SM', 'SUP'], // ไม่รวม SR
     },
     {
       id: 'company',
@@ -92,8 +98,15 @@ export default function SettingsPage() {
       ),
       href: '/settings/company',
       color: 'success',
+      allowedRoles: ['CEO', 'SD', 'SM'], // Management only
     },
   ];
+
+  // Filter menu items based on user role
+  const settingsMenuItems = allSettingsMenuItems.filter((item) => {
+    if (!user?.role) return false;
+    return item.allowedRoles.includes(user.role);
+  });
 
   const colorClasses: Record<string, string> = {
     primary: 'bg-primary/10 text-primary',

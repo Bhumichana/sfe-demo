@@ -80,7 +80,8 @@ export function canAccessUserData(
   }
 
   // SD และ SM สามารถเข้าถึงข้อมูลของ Supervisor และ SR ทั้งหมด
-  if ([UserRole.SD, UserRole.SM].includes(currentUser.role)) {
+  const managementRoles: UserRole[] = [UserRole.SD, UserRole.SM];
+  if (managementRoles.includes(currentUser.role)) {
     return true;
   }
 
@@ -154,7 +155,8 @@ export function buildDataAccessFilter(currentUser: any, subordinateIds?: string[
   }
 
   // SD, SM: เห็นข้อมูลทั้งหมดใน company
-  if ([UserRole.SD, UserRole.SM].includes(currentUser.role)) {
+  const managementRoles: UserRole[] = [UserRole.SD, UserRole.SM];
+  if (managementRoles.includes(currentUser.role)) {
     return {}; // No filter - can see all
   }
 

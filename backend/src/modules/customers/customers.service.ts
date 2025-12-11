@@ -379,13 +379,13 @@ export class CustomersService {
     if (user.role === 'SR') {
       // Sales Rep sees only their own customers
       where.createdBy = userId;
-    } else if (user.role === 'SUP' || user.role === 'SM') {
-      // Supervisor/Sales Manager sees all customers in their territory
+    } else if (user.role === 'SUP') {
+      // Supervisor sees all customers in their territory
       if (user.territoryId) {
         where.territoryId = user.territoryId;
       }
-    } else if (user.role === 'SD' || user.role === 'CEO') {
-      // Sales Director/CEO sees all customers in company
+    } else if (user.role === 'SM' || user.role === 'SD' || user.role === 'CEO') {
+      // Sales Manager/Sales Director/CEO sees all customers in company
       // No additional filter needed
     }
 

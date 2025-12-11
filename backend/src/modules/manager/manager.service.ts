@@ -10,10 +10,11 @@ export class ManagerService {
    * Get dashboard statistics for manager
    */
   async getDashboardStats(currentUser: any, managerId: string, startDate?: string, endDate?: string) {
-    // Permission check: SUP can only see their own dashboard, SM/SD can see all
+    // Permission check: SUP can only see their own dashboard, SM/SD can see all managers' dashboards
     if (currentUser.role === UserRole.SUP && currentUser.id !== managerId) {
       throw new ForbiddenException('You can only view your own dashboard');
     }
+    // SM/SD can view any manager's dashboard - no restriction needed
 
     // Verify manager exists
     const manager = await this.prisma.user.findUnique({
@@ -120,10 +121,11 @@ export class ManagerService {
    * Get team members list
    */
   async getTeamMembers(currentUser: any, managerId: string) {
-    // Permission check: SUP can only see their own team, SM/SD can see all
+    // Permission check: SUP can only see their own team, SM/SD can see all teams
     if (currentUser.role === UserRole.SUP && currentUser.id !== managerId) {
       throw new ForbiddenException('You can only view your own team');
     }
+    // SM/SD can view any manager's team - no restriction needed
 
     const manager = await this.prisma.user.findUnique({
       where: { id: managerId },
@@ -220,10 +222,11 @@ export class ManagerService {
     startDate?: string,
     endDate?: string,
   ) {
-    // Permission check: SUP can only see their own team's reports, SM/SD can see all
+    // Permission check: SUP can only see their own team's reports, SM/SD can see all teams' reports
     if (currentUser.role === UserRole.SUP && currentUser.id !== managerId) {
       throw new ForbiddenException('You can only view your own team reports');
     }
+    // SM/SD can view any manager's team reports - no restriction needed
 
     // Get subordinate IDs
     const subordinates = await this.prisma.user.findMany({
@@ -287,10 +290,11 @@ export class ManagerService {
    * Get all pre-call plans for team members
    */
   async getTeamPlans(currentUser: any, managerId: string) {
-    // Permission check: SUP can only see their own team's plans, SM/SD can see all
+    // Permission check: SUP can only see their own team's plans, SM/SD can see all teams' plans
     if (currentUser.role === UserRole.SUP && currentUser.id !== managerId) {
       throw new ForbiddenException('You can only view your own team plans');
     }
+    // SM/SD can view any manager's team plans - no restriction needed
 
     // Get subordinate IDs
     const subordinates = await this.prisma.user.findMany({
@@ -326,10 +330,11 @@ export class ManagerService {
    * Get team performance metrics
    */
   async getTeamPerformance(currentUser: any, managerId: string, startDate?: string, endDate?: string) {
-    // Permission check: SUP can only see their own team's performance, SM/SD can see all
+    // Permission check: SUP can only see their own team's performance, SM/SD can see all teams' performance
     if (currentUser.role === UserRole.SUP && currentUser.id !== managerId) {
       throw new ForbiddenException('You can only view your own team performance');
     }
+    // SM/SD can view any manager's team performance - no restriction needed
 
     // Get subordinate IDs
     const subordinates = await this.prisma.user.findMany({

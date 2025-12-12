@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
+import { managerApi } from '@/services/api';
 import StatsCard from '@/components/dashboard/StatsCard';
 import MainLayout from '@/components/layouts/MainLayout';
 
@@ -47,24 +48,16 @@ export default function ManagerDashboard() {
   }, [isAuthenticated, user, router]);
 
   const fetchDashboardStats = async (customStartDate?: string, customEndDate?: string) => {
+    if (!user?.id) return;
+
     try {
       setLoading(true);
-      let url = `${process.env.NEXT_PUBLIC_API_URL}/manager/dashboard/${user?.id}`;
 
-      // Add date filters if provided
-      const params = new URLSearchParams();
-      if (customStartDate) params.append('startDate', customStartDate);
-      if (customEndDate) params.append('endDate', customEndDate);
+      const params: { startDate?: string; endDate?: string } = {};
+      if (customStartDate) params.startDate = customStartDate;
+      if (customEndDate) params.endDate = customEndDate;
 
-      if (params.toString()) {
-        url += `?${params.toString()}`;
-      }
-
-      const response = await fetch(url);
-
-      if (!response.ok) throw new Error('Failed to fetch stats');
-
-      const data = await response.json();
+      const data = await managerApi.getDashboard(user.id, params);
       setStats(data);
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);

@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
+import { managerApi } from '@/services/api';
 import MainLayout from '@/components/layouts/MainLayout';
 import SRPerformanceChart from '@/components/charts/SRPerformanceChart';
 
@@ -53,13 +54,11 @@ export default function TeamMembersPage() {
   }, [isAuthenticated, user, router]);
 
   const fetchTeamMembers = async () => {
+    if (!user?.id) return;
+
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/manager/team/${user?.id}`);
-
-      if (!response.ok) throw new Error('Failed to fetch team');
-
-      const data = await response.json();
+      const data = await managerApi.getTeamMembers(user.id);
       setTeam(data);
     } catch (error) {
       console.error('Error fetching team:', error);

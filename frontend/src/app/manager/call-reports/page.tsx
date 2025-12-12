@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
-import { managerApi } from '@/services/api';
+import { managerApi, callReportsApi } from '@/services/api';
 import MainLayout from '@/components/layouts/MainLayout';
 import dynamic from 'next/dynamic';
 
@@ -118,29 +118,19 @@ export default function CallReportsReviewPage() {
   };
 
   const handleAddCoaching = async () => {
-    if (!selectedReport || !coachingForm.comments.trim()) {
+    if (!selectedReport || !coachingForm.comments.trim() || !user?.id) {
       alert('Please provide coaching comments');
       return;
     }
 
     try {
       setSubmittingCoaching(true);
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/call-reports/${selectedReport.id}/coach`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            managerId: user?.id,
-            comments: coachingForm.comments,
-            rating: coachingForm.rating,
-          }),
-        }
-      );
 
-      if (!response.ok) throw new Error('Failed to add coaching');
+      await callReportsApi.addCoaching(selectedReport.id, {
+        managerId: user.id,
+        comments: coachingForm.comments,
+        rating: coachingForm.rating,
+      });
 
       alert('Coaching added successfully!');
       setShowCoachingModal(false);

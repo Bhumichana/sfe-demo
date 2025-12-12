@@ -310,6 +310,21 @@ export const callReportsApi = {
     );
     return response.data;
   },
+
+  /**
+   * Add coaching to a call report
+   */
+  addCoaching: async (
+    reportId: string,
+    data: {
+      managerId: string;
+      comments: string;
+      rating: number;
+    }
+  ): Promise<any> => {
+    const response = await api.post(`/call-reports/${reportId}/coach`, data);
+    return response.data;
+  },
 };
 
 // Activity Types API
@@ -427,6 +442,17 @@ export const analyticsApi = {
     endDate?: string;
   }): Promise<any> => {
     const response = await api.post('/analytics/export', data);
+    return response.data;
+  },
+
+  /**
+   * Get Executive Dashboard (SM/SD only) - All 4 analysis sections
+   */
+  getExecutiveDashboard: async (params?: {
+    startDate?: string;
+    endDate?: string;
+  }): Promise<any> => {
+    const response = await api.get('/analytics/executive-dashboard', { params });
     return response.data;
   },
 };

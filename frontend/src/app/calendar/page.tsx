@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
-import { preCallPlansApi } from '@/services/api';
+import { preCallPlansApi, managerApi } from '@/services/api';
 import { PreCallPlan, PlanStatus } from '@/types';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, isToday } from 'date-fns';
 import { th } from 'date-fns/locale';
@@ -60,9 +60,7 @@ export default function CalendarPage() {
       let data;
       if (isManager) {
         // Load plans for all team members
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/manager/team-plans/${user.id}`);
-        if (!response.ok) throw new Error('Failed to load team plans');
-        data = await response.json();
+        data = await managerApi.getTeamPlans(user.id);
       } else {
         // Load plans for current user only
         data = await preCallPlansApi.findByUser(user.id);

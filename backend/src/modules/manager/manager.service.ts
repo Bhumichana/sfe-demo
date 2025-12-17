@@ -10,8 +10,9 @@ export class ManagerService {
    * Get dashboard statistics for manager
    */
   async getDashboardStats(currentUser: any, managerId: string, startDate?: string, endDate?: string) {
-    // Permission check: SUP can only see their own dashboard, SM/SD can see all managers' dashboards
-    if (currentUser.role === UserRole.SUP && currentUser.id !== managerId) {
+    // Permission check: SUP/PM/MM can only see their own dashboard, SM/SD can see all managers' dashboards
+    const isLowerManager = currentUser.role === UserRole.SUP || currentUser.role === UserRole.PM || currentUser.role === UserRole.MM;
+    if (isLowerManager && currentUser.id !== managerId) {
       throw new ForbiddenException('You can only view your own dashboard');
     }
     // SM/SD can view any manager's dashboard - no restriction needed
@@ -121,8 +122,9 @@ export class ManagerService {
    * Get team members list
    */
   async getTeamMembers(currentUser: any, managerId: string) {
-    // Permission check: SUP can only see their own team, SM/SD can see all teams
-    if (currentUser.role === UserRole.SUP && currentUser.id !== managerId) {
+    // Permission check: SUP/PM/MM can only see their own team, SM/SD can see all teams
+    const isLowerManager = currentUser.role === UserRole.SUP || currentUser.role === UserRole.PM || currentUser.role === UserRole.MM;
+    if (isLowerManager && currentUser.id !== managerId) {
       throw new ForbiddenException('You can only view your own team');
     }
     // SM/SD can view any manager's team - no restriction needed
@@ -137,11 +139,12 @@ export class ManagerService {
 
     // If SM/SD, return ALL team members (SR and SUP) in the company
     const teamMembersWhere: any = {};
-    if (currentUser.role === UserRole.SM || currentUser.role === UserRole.SD) {
+    const isTopManager = currentUser.role === UserRole.SM || currentUser.role === UserRole.SD;
+    if (isTopManager) {
       // SM/SD see everyone who is SR or SUP
       teamMembersWhere.role = { in: ['SR', 'SUP'] };
     } else {
-      // SUP sees only their own team
+      // SUP/PM/MM see only their own team
       teamMembersWhere.managerId = managerId;
     }
 
@@ -232,8 +235,9 @@ export class ManagerService {
     startDate?: string,
     endDate?: string,
   ) {
-    // Permission check: SUP can only see their own team's reports, SM/SD can see all teams' reports
-    if (currentUser.role === UserRole.SUP && currentUser.id !== managerId) {
+    // Permission check: SUP/PM/MM can only see their own team's reports, SM/SD can see all teams' reports
+    const isLowerManager = currentUser.role === UserRole.SUP || currentUser.role === UserRole.PM || currentUser.role === UserRole.MM;
+    if (isLowerManager && currentUser.id !== managerId) {
       throw new ForbiddenException('You can only view your own team reports');
     }
     // SM/SD can view any manager's team reports - no restriction needed
@@ -243,8 +247,8 @@ export class ManagerService {
       status: CallReportStatus.SUBMITTED,
     };
 
-    // If SM/SD, show ALL reports. If SUP, show only their team's reports
-    if (currentUser.role === UserRole.SUP) {
+    // If SM/SD, show ALL reports. If SUP/PM/MM, show only their team's reports
+    if (isLowerManager) {
       // Get subordinate IDs for this manager
       const subordinates = await this.prisma.user.findMany({
         where: { managerId },
@@ -303,8 +307,9 @@ export class ManagerService {
    * Get all pre-call plans for team members
    */
   async getTeamPlans(currentUser: any, managerId: string) {
-    // Permission check: SUP can only see their own team's plans, SM/SD can see all teams' plans
-    if (currentUser.role === UserRole.SUP && currentUser.id !== managerId) {
+    // Permission check: SUP/PM/MM can only see their own team's plans, SM/SD can see all teams' plans
+    const isLowerManager = currentUser.role === UserRole.SUP || currentUser.role === UserRole.PM || currentUser.role === UserRole.MM;
+    if (isLowerManager && currentUser.id !== managerId) {
       throw new ForbiddenException('You can only view your own team plans');
     }
     // SM/SD can view any manager's team plans - no restriction needed
@@ -312,8 +317,8 @@ export class ManagerService {
     // Build where clause
     const where: any = {};
 
-    // If SM/SD, show ALL plans. If SUP, show only their team's plans
-    if (currentUser.role === UserRole.SUP) {
+    // If SM/SD, show ALL plans. If SUP/PM/MM, show only their team's plans
+    if (isLowerManager) {
       // Get subordinate IDs for this manager
       const subordinates = await this.prisma.user.findMany({
         where: { managerId },
@@ -348,19 +353,21 @@ export class ManagerService {
    * Get team performance metrics
    */
   async getTeamPerformance(currentUser: any, managerId: string, startDate?: string, endDate?: string) {
-    // Permission check: SUP can only see their own team's performance, SM/SD can see all teams' performance
-    if (currentUser.role === UserRole.SUP && currentUser.id !== managerId) {
+    // Permission check: SUP/PM/MM can only see their own team's performance, SM/SD can see all teams' performance
+    const isLowerManager = currentUser.role === UserRole.SUP || currentUser.role === UserRole.PM || currentUser.role === UserRole.MM;
+    if (isLowerManager && currentUser.id !== managerId) {
       throw new ForbiddenException('You can only view your own team performance');
     }
     // SM/SD can view any manager's team performance - no restriction needed
 
     // Build where clause for subordinates
     const subordinatesWhere: any = {};
-    if (currentUser.role === UserRole.SM || currentUser.role === UserRole.SD) {
+    const isTopManager = currentUser.role === UserRole.SM || currentUser.role === UserRole.SD;
+    if (isTopManager) {
       // SM/SD see everyone who is SR or SUP
       subordinatesWhere.role = { in: ['SR', 'SUP'] };
     } else {
-      // SUP sees only their own team
+      // SUP/PM/MM see only their own team
       subordinatesWhere.managerId = managerId;
     }
 

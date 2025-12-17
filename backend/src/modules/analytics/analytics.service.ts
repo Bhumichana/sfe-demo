@@ -717,4 +717,343 @@ export class AnalyticsService {
       count,
     }));
   }
+
+  /**
+   * Get Sales Funnel Analysis for Executives
+   */
+  async getSalesFunnel(companyId: string, startDate?: string, endDate?: string) {
+    const dateFilter = this.getDateFilter(startDate, endDate);
+
+    // 1. Total Prospects = All active customers
+    const totalProspects = await this.prisma.customer.count({
+      where: {
+        creator: { companyId },
+        isActive: true,
+      },
+    });
+
+    // 2. Leads = Customers with at least one PreCallPlan
+    const leadsData = await this.prisma.preCallPlan.groupBy({
+      by: ['customerId'],
+      where: {
+        sr: { companyId },
+        ...dateFilter.callDate && { planDate: dateFilter.callDate },
+      },
+    });
+    const totalLeads = leadsData.length;
+
+    // 3. Opportunities = PreCallPlans with status APPROVED
+    const opportunitiesData = await this.prisma.preCallPlan.groupBy({
+      by: ['customerId'],
+      where: {
+        sr: { companyId },
+        status: 'APPROVED',
+        ...dateFilter.callDate && { planDate: dateFilter.callDate },
+      },
+    });
+    const totalOpportunities = opportunitiesData.length;
+
+    // 4. Wins = CallReports with positive outcome
+    const winsData = await this.prisma.callReport.groupBy({
+      by: ['customerId'],
+      where: {
+        sr: { companyId },
+        status: CallReportStatus.SUBMITTED,
+        OR: [
+          { durationMinutes: { gte: 15 } }, // Meaningful conversation
+          { nextAction: { not: null } }, // Follow-up planned
+        ],
+        ...dateFilter,
+      },
+    });
+    const totalWins = winsData.length;
+
+    // Calculate conversion rates
+    const leadConversionRate = totalProspects > 0 ? (totalLeads / totalProspects) * 100 : 0;
+    const opportunityConversionRate = totalLeads > 0 ? (totalOpportunities / totalLeads) * 100 : 0;
+    const winRate = totalOpportunities > 0 ? (totalWins / totalOpportunities) * 100 : 0;
+
+    // Calculate average deal cycle (from first plan to successful call)
+    let avgDealCycle = 0;
+    if (totalWins > 0) {
+      const winCustomerIds = winsData.map(w => w.customerId);
+      const deals = await this.prisma.callReport.findMany({
+        where: {
+          customerId: { in: winCustomerIds },
+          status: CallReportStatus.SUBMITTED,
+        },
+        select: {
+          customerId: true,
+          callDate: true,
+          preCallPlan: {
+            select: { planDate: true },
+          },
+        },
+      });
+
+      const cycleTimes = deals
+        .filter(d => d.preCallPlan?.planDate)
+        .map(d => {
+          const planDate = new Date(d.preCallPlan!.planDate);
+          const callDate = new Date(d.callDate);
+          const diffTime = Math.abs(callDate.getTime() - planDate.getTime());
+          return Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Convert to days
+        });
+
+      if (cycleTimes.length > 0) {
+        avgDealCycle = Math.round(cycleTimes.reduce((sum, val) => sum + val, 0) / cycleTimes.length);
+      }
+    }
+
+    return {
+      funnel: [
+        { stage: 'Prospects', count: totalProspects, percentage: 100 },
+        { stage: 'Leads', count: totalLeads, percentage: Math.round(leadConversionRate * 100) / 100 },
+        { stage: 'Opportunities', count: totalOpportunities, percentage: Math.round(opportunityConversionRate * 100) / 100 },
+        { stage: 'Wins', count: totalWins, percentage: Math.round(winRate * 100) / 100 },
+      ],
+      metrics: {
+        leadConversionRate: Math.round(leadConversionRate * 100) / 100,
+        opportunityConversionRate: Math.round(opportunityConversionRate * 100) / 100,
+        winRate: Math.round(winRate * 100) / 100,
+        avgDealCycle,
+      },
+    };
+  }
+
+  /**
+   * Get Territory Comparison for Executives
+   */
+  async getTerritoryComparison(companyId: string, startDate?: string, endDate?: string) {
+    const dateFilter = this.getDateFilter(startDate, endDate);
+
+    // Get all territories for this company
+    const territories = await this.prisma.territory.findMany({
+      where: { companyId, isActive: true },
+      select: { id: true, code: true, nameTh: true, nameEn: true },
+    });
+
+    // Get performance data for each territory
+    const performanceData = await Promise.all(
+      territories.map(async (territory) => {
+        const [totalCalls, teamSize, abcCoverage] = await Promise.all([
+          // Total calls in this territory
+          this.prisma.callReport.count({
+            where: {
+              sr: { companyId, territoryId: territory.id },
+              status: CallReportStatus.SUBMITTED,
+              ...dateFilter,
+            },
+          }),
+
+          // Team size (SRs in this territory)
+          this.prisma.user.count({
+            where: {
+              companyId,
+              territoryId: territory.id,
+              role: 'SR',
+              isActive: true,
+            },
+          }),
+
+          // ABC Coverage
+          this.getABCCoverage(companyId, territory.id, dateFilter),
+        ]);
+
+        // Calculate average calls per SR
+        const avgCallsPerSR = teamSize > 0 ? Math.round((totalCalls / teamSize) * 100) / 100 : 0;
+
+        return {
+          territoryId: territory.id,
+          territoryCode: territory.code,
+          territoryName: territory.nameTh,
+          totalCalls,
+          teamSize,
+          avgCallsPerSR,
+          abcCoverage: abcCoverage.percentage,
+        };
+      }),
+    );
+
+    // Sort by total calls descending
+    const sorted = performanceData.sort((a, b) => b.totalCalls - a.totalCalls);
+
+    return {
+      total: territories.length,
+      territories: sorted,
+    };
+  }
+
+  /**
+   * Get Customer Segmentation Analysis for Executives
+   */
+  async getCustomerSegmentation(companyId: string) {
+    // ABC Distribution
+    const abcDistribution = await this.prisma.customer.groupBy({
+      by: ['type'],
+      where: {
+        creator: { companyId },
+        isActive: true,
+      },
+      _count: true,
+    });
+
+    const totalCustomers = abcDistribution.reduce((sum, item) => sum + item._count, 0);
+
+    const abcBreakdown = abcDistribution.map((item) => ({
+      type: item.type,
+      count: item._count,
+      percentage: totalCustomers > 0 ? Math.round((item._count / totalCustomers) * 100 * 100) / 100 : 0,
+    }));
+
+    // Geographic distribution by territory
+    const geoDistribution = await this.prisma.customer.groupBy({
+      by: ['territoryId'],
+      where: {
+        creator: { companyId },
+        isActive: true,
+        territoryId: { not: null },
+      },
+      _count: true,
+    });
+
+    const territoryIds = geoDistribution.map(g => g.territoryId).filter(Boolean) as string[];
+    const territories = await this.prisma.territory.findMany({
+      where: { id: { in: territoryIds } },
+      select: { id: true, code: true, nameTh: true },
+    });
+
+    const geoBreakdown = geoDistribution.map((item) => {
+      const territory = territories.find(t => t.id === item.territoryId);
+      return {
+        territoryId: item.territoryId,
+        territoryName: territory?.nameTh || 'Unknown',
+        territoryCode: territory?.code || 'N/A',
+        count: item._count,
+        percentage: totalCustomers > 0 ? Math.round((item._count / totalCustomers) * 100 * 100) / 100 : 0,
+      };
+    });
+
+    // Visit frequency analysis (last 6 months)
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    const visitFrequency = await this.prisma.callReport.groupBy({
+      by: ['customerId'],
+      where: {
+        sr: { companyId },
+        status: CallReportStatus.SUBMITTED,
+        callDate: { gte: sixMonthsAgo },
+      },
+      _count: true,
+    });
+
+    // Categorize by visit frequency
+    const highFrequency = visitFrequency.filter(v => v._count >= 10).length;
+    const mediumFrequency = visitFrequency.filter(v => v._count >= 5 && v._count < 10).length;
+    const lowFrequency = visitFrequency.filter(v => v._count < 5).length;
+
+    return {
+      totalCustomers,
+      abcDistribution: abcBreakdown,
+      geoDistribution: geoBreakdown,
+      visitFrequency: {
+        high: highFrequency,
+        medium: mediumFrequency,
+        low: lowFrequency,
+        total: visitFrequency.length,
+      },
+    };
+  }
+
+  /**
+   * Get Trend Analysis with Simple Forecasting for Executives
+   */
+  async getTrendAnalysis(companyId: string, months: number = 6) {
+    const userFilter = await this.getUserFilter(companyId);
+    const now = new Date();
+    const historicalData = [];
+
+    // Get historical data for last N months
+    for (let i = months - 1; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+      const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
+
+      const count = await this.prisma.callReport.count({
+        where: {
+          ...userFilter,
+          status: CallReportStatus.SUBMITTED,
+          callDate: {
+            gte: startOfMonth,
+            lte: endOfMonth,
+          },
+        },
+      });
+
+      historicalData.push({
+        month: date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        count,
+        date: date.toISOString(),
+      });
+    }
+
+    // Calculate month-over-month growth rates
+    const growthRates = historicalData.map((item, index) => {
+      if (index === 0) return { ...item, growthRate: 0 };
+      const prevCount = historicalData[index - 1].count;
+      const growthRate = prevCount > 0 ? ((item.count - prevCount) / prevCount) * 100 : 0;
+      return {
+        ...item,
+        growthRate: Math.round(growthRate * 100) / 100,
+      };
+    });
+
+    // Simple forecast using moving average
+    const last6Months = historicalData.slice(-6);
+    const movingAvg = last6Months.reduce((sum, val) => sum + val.count, 0) / last6Months.length;
+
+    const forecast = [
+      {
+        month: new Date(now.getFullYear(), now.getMonth() + 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        count: Math.round(movingAvg),
+        isForecast: true,
+      },
+      {
+        month: new Date(now.getFullYear(), now.getMonth() + 2, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        count: Math.round(movingAvg * 1.05),
+        isForecast: true,
+      },
+      {
+        month: new Date(now.getFullYear(), now.getMonth() + 3, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        count: Math.round(movingAvg * 1.1),
+        isForecast: true,
+      },
+    ];
+
+    // Determine trend direction
+    const lastThreeMonths = historicalData.slice(-3);
+    const avgLastThree = lastThreeMonths.reduce((sum, val) => sum + val.count, 0) / 3;
+    const firstThreeMonths = historicalData.slice(0, 3);
+    const avgFirstThree = firstThreeMonths.reduce((sum, val) => sum + val.count, 0) / 3;
+
+    let trendDirection = 'stable';
+    if (avgLastThree > avgFirstThree * 1.1) {
+      trendDirection = 'growing';
+    } else if (avgLastThree < avgFirstThree * 0.9) {
+      trendDirection = 'declining';
+    }
+
+    return {
+      historical: growthRates,
+      forecast,
+      trendDirection,
+      summary: {
+        totalCalls: historicalData.reduce((sum, val) => sum + val.count, 0),
+        avgPerMonth: Math.round(movingAvg),
+        highestMonth: historicalData.reduce((max, val) => val.count > max.count ? val : max, historicalData[0]),
+        lowestMonth: historicalData.reduce((min, val) => val.count < min.count ? val : min, historicalData[0]),
+      },
+    };
+  }
 }

@@ -11,6 +11,9 @@ export default function BottomNav() {
   // Check if user is a manager (Sales Manager, Supervisor, Product Manager, Marketing Manager)
   const isManager = user?.role === 'SM' || user?.role === 'SUP' || user?.role === 'PM' || user?.role === 'MM';
 
+  // Check if user is SM or SD (for Deep Analytics access)
+  const isExecutive = user?.role === 'SM' || user?.role === 'SD';
+
   const navItems = [
     {
       id: 'home',
@@ -68,6 +71,17 @@ export default function BottomNav() {
       showFor: 'all',
     },
     {
+      id: 'deep-analytics',
+      label: 'Deep',
+      path: '/analytics/executive',
+      icon: (isActive: boolean) => (
+        <svg className={`w-6 h-6 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} fill={isActive ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+        </svg>
+      ),
+      showFor: 'executive', // Show only for SM and SD
+    },
+    {
       id: 'settings',
       label: 'Settings',
       path: '/settings',
@@ -85,6 +99,7 @@ export default function BottomNav() {
   const filteredNavItems = navItems.filter(item => {
     if (item.showFor === 'all') return true;
     if (item.showFor === 'manager') return isManager;
+    if (item.showFor === 'executive') return isExecutive;
     return false;
   });
 

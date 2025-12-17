@@ -5,10 +5,16 @@ import {
   Query,
   Body,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { AnalyticsService } from './analytics.service';
 import { ExportReportDto } from './dto/export-report.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { UserRole } from '@prisma/client';
 
 @ApiTags('analytics')
 @Controller('analytics')
@@ -139,5 +145,39 @@ export class AnalyticsController {
   @ApiOperation({ summary: 'Export analytics report (PDF/CSV)' })
   exportReport(@Body() exportDto: ExportReportDto) {
     return this.analyticsService.exportReport(exportDto);
+  }
+
+  @Get('executive-dashboard')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SM, UserRole.SD)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get executive dashboard for SM/SD with all 4 analysis sections' })
+  @ApiQuery({ name: 'startDate', required: false, example: '2025-01-01' })
+  @ApiQuery({ name: 'endDate', required: false, example: '2025-12-31' })
+  async getExecutiveDashboard(
+    @CurrentUser() user: any,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    const companyId = user.companyId;
+
+    // Fetch all 4 sections in parallel for performance
+    const [salesFunnel, territoryComparison, customerSegmentation, trendAnalysis] = await Promise.all([
+      this.analyticsService.getSalesFunnel(companyId, startDate, endDate),
+      this.analyticsService.getTerritoryComparison(companyId, startDate, endDate),
+      this.analyticsService.getCustomerSegmentation(companyId),
+      this.analyticsService.getTrendAnalysis(companyId, 6),
+    ]);
+
+    return {
+      salesFunnel,
+      territoryComparison,
+      customerSegmentation,
+      trendAnalysis,
+      dateRange: {
+        startDate: startDate || null,
+        endDate: endDate || null,
+      },
+    };
   }
 }

@@ -18,7 +18,7 @@ import { UserRole } from '@prisma/client';
 @Controller('manager')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
-@Roles(UserRole.SUP, UserRole.SM, UserRole.SD) // Only managers can access
+@Roles(UserRole.SUP, UserRole.SM, UserRole.SD, UserRole.PM, UserRole.MM) // All manager roles can access
 export class ManagerController {
   constructor(private readonly managerService: ManagerService) {}
 

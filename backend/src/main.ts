@@ -14,6 +14,7 @@ async function bootstrap() {
   app.enableCors({
     origin: (origin, callback) => {
       // Allow all origins when credentials are true
+      console.log('🔧 CORS Request from origin:', origin);
       callback(null, true);
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -22,6 +23,8 @@ async function bootstrap() {
     preflightContinue: false,
     optionsSuccessStatus: 204,
   });
+
+  console.log('✅ CORS configured with callback function (allow all origins)');
 
   // Log all requests
   app.use((req, res, next) => {

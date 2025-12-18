@@ -26,7 +26,7 @@ async function bootstrap() {
 
   console.log('✅ CORS configured: dynamic origin with credentials');
 
-  // Log all requests (especially OPTIONS for CORS debugging)
+  // Handle OPTIONS requests BEFORE any guards/pipes
   app.use((req, res, next) => {
     if (req.method === 'OPTIONS') {
       console.log('🔧 OPTIONS Request (CORS Preflight):', {
@@ -34,7 +34,17 @@ async function bootstrap() {
         path: req.path,
         origin: req.headers.origin,
       });
+
+      // Manually set CORS headers for OPTIONS requests
+      const origin = req.headers.origin || '*';
+      res.header('Access-Control-Allow-Origin', origin);
+      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
+      res.header('Access-Control-Allow-Credentials', 'true');
+      res.status(204).send();
+      return;
     }
+
     if (req.method === 'PATCH' && req.path.includes('/users/')) {
       console.log('🔍 PATCH Request:', {
         method: req.method,

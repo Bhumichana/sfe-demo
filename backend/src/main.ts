@@ -26,8 +26,15 @@ async function bootstrap() {
 
   console.log('✅ CORS configured: dynamic origin with credentials');
 
-  // Log all requests
+  // Log all requests (especially OPTIONS for CORS debugging)
   app.use((req, res, next) => {
+    if (req.method === 'OPTIONS') {
+      console.log('🔧 OPTIONS Request (CORS Preflight):', {
+        method: req.method,
+        path: req.path,
+        origin: req.headers.origin,
+      });
+    }
     if (req.method === 'PATCH' && req.path.includes('/users/')) {
       console.log('🔍 PATCH Request:', {
         method: req.method,

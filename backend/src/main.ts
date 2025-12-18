@@ -12,7 +12,10 @@ async function bootstrap() {
 
   // CORS - Allow frontend to access API
   app.enableCors({
-    origin: true, // Allow all origins temporarily for debugging
+    origin: (origin, callback) => {
+      // Allow all origins when credentials are true
+      callback(null, true);
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     credentials: true,

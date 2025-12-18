@@ -13,9 +13,9 @@ async function bootstrap() {
   // CORS - Allow frontend to access API
   app.enableCors({
     origin: (origin, callback) => {
-      // Allow all origins when credentials are true
+      // Allow the requesting origin (return the actual origin instead of true)
       console.log('🔧 CORS Request from origin:', origin);
-      callback(null, true);
+      callback(null, origin || '*');
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
@@ -24,7 +24,7 @@ async function bootstrap() {
     optionsSuccessStatus: 204,
   });
 
-  console.log('✅ CORS configured with callback function (allow all origins)');
+  console.log('✅ CORS configured: dynamic origin with credentials');
 
   // Log all requests
   app.use((req, res, next) => {
